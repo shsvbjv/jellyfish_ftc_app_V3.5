@@ -19,6 +19,9 @@ public class Arcade extends LinearOpMode {
     int lmotorpos;
     int rmotorpos;
 
+    //For Spatula
+    int rev = 1120;
+
     hMap robot = new hMap();
 
     @Override
@@ -48,6 +51,8 @@ public class Arcade extends LinearOpMode {
 
             Winch();
             servo();
+            spatDown();
+            spatUp();
 
             power = scaleInput(Range.clip(-gamepad1.right_stick_y, -1, 1));
             strafe = scaleInput(Range.clip(-gamepad1.right_stick_x, -1, 1));
@@ -74,6 +79,7 @@ public class Arcade extends LinearOpMode {
                 FR = -0.25;
                 BR = -0.25;
             }
+
 
             robot.frontLeft.setPower(FL);
             robot.backLeft.setPower(BL);
@@ -204,6 +210,17 @@ public class Arcade extends LinearOpMode {
         topHalf = gamepad2.dpad_up;
         botHalf = gamepad2.dpad_down;
     }
+
+    //One Rev is 1120
+    void spatUp(){
+
+    }
+
+    void spatDown(){
+
+    }
+
+
 }
 
 

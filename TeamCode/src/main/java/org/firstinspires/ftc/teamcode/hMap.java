@@ -38,6 +38,11 @@ public class hMap {
     public DcMotor lWinch      ;
     public DcMotor rWinch      ;
 
+    //Spatula Lift
+
+    public DcMotor spatLeft;
+    public DcMotor spatRight;
+
     /* Servos */
 
     //Chopstick Servos
@@ -89,6 +94,9 @@ public class hMap {
         backLeft        = hwMap.get(DcMotor.class, "backLeft")        ;
         backRight       = hwMap.get(DcMotor.class, "backRight")       ;
 
+        spatLeft = hwMap.get(DcMotor.class, "spatLeft");
+        spatRight = hwMap.get(DcMotor.class, "spatRight");
+
         frontRight.setDirection(DcMotor.Direction.REVERSE)            ;
         backRight .setDirection(DcMotor.Direction.REVERSE)            ;
 
@@ -96,6 +104,10 @@ public class hMap {
         frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         backLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         backRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        //RUN_TO_POSITION = set encoder value and motor will go there and hold
+        spatRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        spatLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         frontLeft.setPower(0);
         frontRight.setPower(0);
