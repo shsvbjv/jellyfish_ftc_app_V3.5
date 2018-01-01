@@ -40,19 +40,28 @@ public class Arcade extends LinearOpMode {
         robot.botServR.setPosition(robot.START_CHOP_POS_B + 0.1);
         robot.topServL.setPosition(robot.START_CHOP_POS_B - 0.1);
         robot.topServR.setPosition(robot.START_CHOP_POS_A - 0.1);
-        robot.tChop = false;
-        robot.bChop = false;
-        robot.tHalf = false;
-        robot.bHalf = false;
+        //robot.tChop = false;
+        //robot.bChop = false;
+        //robot.tHalf = false;
+        //robot.bHalf = false;
 
         waitForStart();
 
         while (opModeIsActive()) {
 
-            Winch();
-            servo();
-            spatDown();
-            spatUp();
+            //Winch();
+            //servo();
+
+            //The below int vars are used only in spatDown and Up
+            int posR = robot.spatRight.getCurrentPosition();
+            int posL = robot.spatLeft.getCurrentPosition();
+
+            //Telemetry for the spatMotors
+            telemetry.addData("spatLeft position", posL);
+            telemetry.addData("spatRight Position", posR);
+
+            spatDown(posR, posL);
+            spatUp(posR, posL);
 
             power = scaleInput(Range.clip(-gamepad1.right_stick_y, -1, 1));
             strafe = scaleInput(Range.clip(-gamepad1.right_stick_x, -1, 1));
@@ -123,6 +132,8 @@ public class Arcade extends LinearOpMode {
     }
 
 
+    //not needed
+    /*
     void Winch() {
 
         robot.lWinch.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -139,7 +150,10 @@ public class Arcade extends LinearOpMode {
             robot.rWinch.setPower(scaleInput(gamepad2.right_stick_y));
         }
     }
+    */
 
+    //Not needed
+    /*
     void servo() {
         if(!robot.bHalf) {
             if (!botHalf && gamepad2.dpad_down) {
@@ -210,14 +224,24 @@ public class Arcade extends LinearOpMode {
         topHalf = gamepad2.dpad_up;
         botHalf = gamepad2.dpad_down;
     }
+    */
 
-    //One Rev is 1120
-    void spatUp(){
+    //spatLeft IS REVERSED
+
+    //One Rev is 1120 ticks
+    void spatUp(int posR, int posL){
+        if(gamepad2.a && posR != 8){ //8 is a placeholder
+            robot.spatLeft.setTargetPosition(1); //placeholder
+            robot.spatRight.setTargetPosition(1); //placeholder
+        }
 
     }
 
-    void spatDown(){
-
+    void spatDown(int posR, int posL){
+        if(gamepad2.a && posR != 1){ //1 is a placeholder
+            robot.spatLeft.setTargetPosition(1); //placeholder
+            robot.spatRight.setTargetPosition(1); //placeholder
+        }
     }
 
 

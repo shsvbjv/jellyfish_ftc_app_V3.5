@@ -100,6 +100,8 @@ public class hMap {
         frontRight.setDirection(DcMotor.Direction.REVERSE)            ;
         backRight .setDirection(DcMotor.Direction.REVERSE)            ;
 
+        spatLeft.setDirection(DcMotor.Direction.REVERSE)            ;
+
         frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         backLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
