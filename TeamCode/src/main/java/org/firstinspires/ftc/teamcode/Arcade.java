@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorController;
 import com.qualcomm.robotcore.util.Range;
 
 /**
@@ -233,6 +234,9 @@ public class Arcade extends LinearOpMode {
         if(gamepad2.a && posR != 8){ //8 is a placeholder
             robot.spatLeft.setTargetPosition(1); //placeholder
             robot.spatRight.setTargetPosition(1); //placeholder
+            robot.spatRight.setPower(0.5);
+            robot.spatLeft.setPower(0.5);
+
         }
 
     }
@@ -241,7 +245,11 @@ public class Arcade extends LinearOpMode {
         if(gamepad2.a && posR != 1){ //1 is a placeholder
             robot.spatLeft.setTargetPosition(1); //placeholder
             robot.spatRight.setTargetPosition(1); //placeholder
+            robot.spatRight.setPower(0.5);
+            robot.spatLeft.setPower(0.5);
+
         }
+
     }
 
 
