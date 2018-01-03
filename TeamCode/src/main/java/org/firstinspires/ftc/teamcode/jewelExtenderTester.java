@@ -64,7 +64,7 @@ public class jewelExtenderTester extends LinearOpMode {
         }
 
         robot.armServo.setPosition(robot.DOWN_JARM_POS / 2.0);
-        robot.jewelHitter.setPosition(robot.SPANK_MIDDLE);
+        robot.jarmEXT.setPosition(robot.SPANK_MIDDLE);
         sleep(100);
         robot.armServo.setPosition(robot.DOWN_JARM_POS);
 
@@ -73,7 +73,7 @@ public class jewelExtenderTester extends LinearOpMode {
 
         //remove later
         while(true){
-            telemetry.addData("jewelHitter Position", robot.jewelHitter.getPosition()  );
+            telemetry.addData("jarmEXT Position", robot.jarmEXT.getPosition()  );
             telemetry.update();
         }
 
@@ -486,18 +486,18 @@ public class jewelExtenderTester extends LinearOpMode {
     }
 
     void spankJewel(boolean isJewelRedFinal){
-        robot.jewelHitter.setPosition(robot.SPANK_MIDDLE);
+        robot.jarmEXT.setPosition(robot.SPANK_MIDDLE);
         sleep(300);
 
         if(isJewelRedFinal){
-            robot.jewelHitter.setPosition(robot.SPANK_RIGHT);
+            robot.jarmEXT.setPosition(robot.SPANK_RIGHT);
             sleep(300);
 
             //Pur jarm in position to be moved up
-            robot.jewelHitter.setPosition(robot.SPANK_LEFT);
+            robot.jarmEXT.setPosition(robot.SPANK_LEFT);
         }
         else{
-            robot.jewelHitter.setPosition(robot.SPANK_LEFT);
+            robot.jarmEXT.setPosition(robot.SPANK_LEFT);
         }
 
         robot.armServo.setPosition(robot.UP_JARM_POS);
