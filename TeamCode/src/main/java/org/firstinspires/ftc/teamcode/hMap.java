@@ -83,6 +83,12 @@ public class hMap {
     public static final double UP_JARM_POS = 0;
     public static final double DOWN_JARM_POS = 0.75;
 
+    //Spank
+    public static final double SPANK_MIDDLE = 0.5;
+    public static final double SPANK_RIGHT = 1;
+    public static final double SPANK_LEFT = 0;
+
+
     //boolean for functions
     public boolean tChop;
     public boolean bChop;
