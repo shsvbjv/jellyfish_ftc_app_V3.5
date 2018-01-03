@@ -54,6 +54,9 @@ public class hMap {
     //Sensor Arm Servo, for jewel arm
     public Servo armServo    ;
 
+    //Server for jewel spanker
+    public Servo jewelHitter;
+
     /* Sensors */
     public ColorSensor color_sensor;
 
@@ -68,6 +71,12 @@ public class hMap {
     //Start and end positions for the jewel arm
     public static final double UP_JARM_POS = 0;
     public static final double DOWN_JARM_POS = 0.75;
+
+    //Values for spanker
+    //Left is when it's pointing to the battery
+    public static final double SPANK_MIDDLE = 0.5;
+    public static final double SPANK_LEFT = 0;
+    public static final double SPANKE_RIGHT = 1;
 
     //boolean for servo function
     public boolean tail ;
@@ -134,6 +143,7 @@ public class hMap {
         botServL        = hwMap.get(Servo.class, "botServL")          ;
         botServR        = hwMap.get(Servo.class, "botServR")          ;
         armServo        = hwMap.get(Servo.class, "armServo")          ;
+        jewelHitter     = hwMap.get(Servo.class, "jewelHitter")       ;
 
         /* Sensors */
         color_sensor    = hwMap.get(ColorSensor.class, "color_sensor");
