@@ -126,14 +126,16 @@ public class AutoRedBot extends LinearOpMode {
 
         grabTop();
 
+        sleep(500);
+
+        Winch(1);
+
         sleep(400);
 
         if (forward) {
-            robot.jarmEXT.setPosition(1);
-            sleep(200);
+            VerticalDriveDistance(0.4, 1*rev);
+            sleep(300);
             robot.armServo.setPosition(robot.UP_JARM_POS);
-            sleep(200);
-            robot.jarmEXT.setPosition(0);
             sleep(300);
             VerticalDriveDistance(0.3, 3*rev);
             sleep(300);
@@ -145,11 +147,13 @@ public class AutoRedBot extends LinearOpMode {
             startTop();
             VerticalDriveDistance(-0.3, -rev/2);
         } else if (!forward) {
-            robot.jarmEXT.setPosition(0);
-            sleep(500);
+            RotateDistance(0.3, rev/2);
+            sleep(100);
             robot.armServo.setPosition(robot.UP_JARM_POS);
+            RotateDistance(-0.3, -rev/2);
             sleep(300);
             VerticalDriveDistance(0.4, 4*rev);
+            sleep(300);
             sleep(300);
             VerticalDriveDistance(-0.3, -rev/4);
             // I'm Gay
@@ -315,6 +319,14 @@ public class AutoRedBot extends LinearOpMode {
 
             //          StopDriving();
         }
+    }
+
+    void Winch(double power) {
+        //robot.lWinch.setPower(power);
+        //robot.rWinch.setPower(power);
+        sleep(2000);
+        //robot.lWinch.setPower(0.05);
+        //robot.rWinch.setPower(0.05);
     }
 
 //------------------------------------------------------------------------------------------------------------------------------

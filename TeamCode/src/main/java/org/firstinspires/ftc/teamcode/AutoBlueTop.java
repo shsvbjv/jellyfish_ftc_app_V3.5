@@ -134,6 +134,10 @@ public class AutoBlueTop extends LinearOpMode {
 
         grabTop();
 
+        sleep(500);
+
+        Winch(1);
+
         sleep(400);
 
         while (!found) {
@@ -175,10 +179,10 @@ public class AutoBlueTop extends LinearOpMode {
         }
 
         if (forward) {
-            robot.jarmEXT.setPosition(0);
-            sleep(500);
+            RotateDistance(-0.4, -rev / 2);
             robot.armServo.setPosition(robot.UP_JARM_POS);
-            sleep(300);
+            sleep(100);
+            RotateDistance(0.4, rev / 2);
             sleep(100);
             VerticalDriveDistance(-0.4, -2 * rev);
             sleep(100);
@@ -202,11 +206,9 @@ public class AutoBlueTop extends LinearOpMode {
             sleep(200);
             VerticalDriveDistance(-0.3, -rev / 4);
         } else if (!forward) {
-            robot.jarmEXT.setPosition(1);
-            sleep(200);
+            VerticalDriveDistance(-0.4, -2 * rev);
+            sleep(100);
             robot.armServo.setPosition(robot.UP_JARM_POS);
-            sleep(200);
-            robot.jarmEXT.setPosition(0);
             sleep(300);
             RotateDistance(-0.8, -3 * rev / 2);
             sleep(100);
@@ -383,6 +385,14 @@ public class AutoBlueTop extends LinearOpMode {
 
             //          StopDriving();
         }
+    }
+
+    void Winch(double power) {
+        //robot.lWinch.setPower(power);
+        //robot.rWinch.setPower(power);
+        sleep(2000);
+        //robot.lWinch.setPower(0.05);
+        //robot.rWinch.setPower(0.05);
     }
 
 //------------------------------------------------------------------------------------------------------------------------------
