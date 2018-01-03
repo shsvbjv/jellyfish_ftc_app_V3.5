@@ -388,11 +388,11 @@ public class AutoBlueTop extends LinearOpMode {
     }
 
     void Winch(double power) {
-        robot.lWinch.setPower(power);
-        robot.rWinch.setPower(power);
+        //robot.lWinch.setPower(power);
+        //robot.rWinch.setPower(power);
         sleep(2000);
-        robot.lWinch.setPower(0.05);
-        robot.rWinch.setPower(0.05);
+        //robot.lWinch.setPower(0.05);
+        //robot.rWinch.setPower(0.05);
     }
 
 //------------------------------------------------------------------------------------------------------------------------------
