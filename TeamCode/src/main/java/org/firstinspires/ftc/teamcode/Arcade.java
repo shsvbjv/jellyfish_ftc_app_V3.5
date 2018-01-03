@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorController;
 import com.qualcomm.robotcore.util.Range;
 
 /**
@@ -12,16 +11,12 @@ import com.qualcomm.robotcore.util.Range;
 
 @TeleOp(name = "Arcade")
 public class Arcade extends LinearOpMode {
-    boolean winchbutton = false;
     boolean topServo = false;
     boolean botServo = false;
-    boolean topHalf = false;
-    boolean botHalf = false;
-    int lmotorpos;
-    int rmotorpos;
-
-    //For Spatula
-    int rev = 1120;
+    boolean isIn     = false;
+    boolean spat     = false;
+    double lPow = 0;
+    double rPow = 0;
 
     hMap robot = new hMap();
 
@@ -41,28 +36,15 @@ public class Arcade extends LinearOpMode {
         robot.botServR.setPosition(robot.START_CHOP_POS_B + 0.1);
         robot.topServL.setPosition(robot.START_CHOP_POS_B - 0.1);
         robot.topServR.setPosition(robot.START_CHOP_POS_A - 0.1);
-        //robot.tChop = false;
-        //robot.bChop = false;
-        //robot.tHalf = false;
-        //robot.bHalf = false;
+        robot.tChop = false;
+        robot.bChop = false;
 
         waitForStart();
 
         while (opModeIsActive()) {
 
-            //Winch();
-            //servo();
-
-            //The below int vars are used only in spatDown and Up
-            int posR = robot.spatRight.getCurrentPosition();
-            int posL = robot.spatLeft.getCurrentPosition();
-
-            //Telemetry for the spatMotors
-            telemetry.addData("spatLeft position", posL);
-            telemetry.addData("spatRight Position", posR);
-
-            spatDown(posR, posL);
-            spatUp(posR, posL);
+            servo();
+            intake();
 
             power = scaleInput(Range.clip(-gamepad1.right_stick_y, -1, 1));
             strafe = scaleInput(Range.clip(-gamepad1.right_stick_x, -1, 1));
@@ -90,7 +72,6 @@ public class Arcade extends LinearOpMode {
                 BR = -0.25;
             }
 
-
             robot.frontLeft.setPower(FL);
             robot.backLeft.setPower(BL);
             robot.frontRight.setPower(FR);
@@ -98,15 +79,8 @@ public class Arcade extends LinearOpMode {
 
             telemetry.addData("Motors", "FL (%.2f), FR (%.2f), BL (%.2f), BR (%.2f)", FL, FR, BL, BR);
             telemetry.addData("Servos", "TL (%.2f), TR (%.2f), BL (%.2f), BR (%.2f)", robot.topServL.getPosition(), robot.topServR.getPosition(), robot.botServL.getPosition(), robot.botServR.getPosition());
-            telemetry.addData("lmotorpos", lmotorpos);
-            telemetry.addData("lWinch", robot.lWinch.getCurrentPosition());
-            telemetry.addData("rmotorpos", rmotorpos);
-            telemetry.addData("rWinch", robot.rWinch.getCurrentPosition());
             telemetry.addData("Slow", gamepad1.left_bumper);
             telemetry.update();
-
-            robot.rWinch.setTargetPosition(robot.rWinch.getCurrentPosition());
-            robot.lWinch.setTargetPosition(robot.lWinch.getCurrentPosition());
         }
     }
 
@@ -133,126 +107,80 @@ public class Arcade extends LinearOpMode {
     }
 
 
-    //not needed
-    /*
-    void Winch() {
-
-        robot.lWinch.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        robot.rWinch.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-        if (gamepad2.left_bumper) {
-            robot.lWinch.setPower(-0.05);
-            robot.rWinch.setPower(-0.05);
-        } else if (gamepad2.right_bumper) {
-            robot.lWinch.setPower(scaleInput(gamepad2.right_stick_y) / 2);
-            robot.rWinch.setPower(scaleInput(gamepad2.right_stick_y) / 2);
-        } else {
-            robot.lWinch.setPower(scaleInput(gamepad2.right_stick_y));
-            robot.rWinch.setPower(scaleInput(gamepad2.right_stick_y));
-        }
-    }
-    */
-
-    //Not needed
-    /*
     void servo() {
-        if(!robot.bHalf) {
-            if (!botHalf && gamepad2.dpad_down) {
-                robot.botServL.setPosition(0.3);
-                robot.botServR.setPosition(0.8);
-                robot.bChop = false;
-                robot.bHalf = true;
-            }
-        } else {
-            if (!botHalf && gamepad2.dpad_down) {
-                robot.botServL.setPosition(robot.START_CHOP_POS_A);
-                robot.botServR.setPosition(robot.START_CHOP_POS_B + 0.1);
-                robot.bChop = false;
-                robot.bHalf = false;
-            }
-        }
 
         if (!robot.bChop) {
-            if (!botServo && gamepad2.a) {
+            if (!botServo && gamepad2.b) {
                 robot.botServL.setPosition(robot.GRAB_CHOP_POS_A + 0.1);
                 robot.botServR.setPosition(robot.GRAB_CHOP_POS_B);
                 robot.bChop = true;
-                robot.bHalf = false;
             }
         } else {
-            if (!botServo && gamepad2.a) {
+            if (!botServo && gamepad2.b) {
                 robot.botServL.setPosition(robot.START_CHOP_POS_A);
                 robot.botServR.setPosition(robot.START_CHOP_POS_B + 0.1);
                 robot.bChop = false;
-                robot.bHalf = false;
-            }
-        }
-
-        if(!robot.tHalf) {
-            if (!topHalf && gamepad2.dpad_up) {
-                robot.topServL.setPosition(0.6);
-                robot.topServR.setPosition(0.2);
-                robot.tChop = false;
-                robot.tHalf = true;
-            }
-        } else {
-            if (!topHalf && gamepad2.dpad_up) {
-                robot.topServL.setPosition(robot.START_CHOP_POS_B - 0.1);
-                robot.topServR.setPosition(robot.START_CHOP_POS_A - 0.1);
-                robot.tChop = false;
-                robot.tHalf = false;
             }
         }
 
         if (!robot.tChop) {
-            if (!topServo && gamepad2.y) {
+            if (!topServo && gamepad2.x) {
                 robot.topServL.setPosition(robot.GRAB_CHOP_POS_B - 0.2);
                 robot.topServR.setPosition(robot.GRAB_CHOP_POS_A);
                 robot.tChop = true;
-                robot.tHalf = false;
             }
         } else {
-            if (!topServo && gamepad2.y) {
+            if (!topServo && gamepad2.x) {
                 robot.topServL.setPosition(robot.START_CHOP_POS_B - 0.1);
                 robot.topServR.setPosition(robot.START_CHOP_POS_A - 0.1);
                 robot.tChop = false;
-                robot.tHalf = false;
             }
         }
 
-        botServo = gamepad2.a;
-        topServo = gamepad2.y;
-        topHalf = gamepad2.dpad_up;
-        botHalf = gamepad2.dpad_down;
+        botServo = gamepad2.b;
+        topServo = gamepad2.x;
     }
-    */
 
-    //spatLeft IS REVERSED
+    void intake() {
+        lPow = Range.clip(-gamepad2.left_stick_y, -0.5, 0.5);
+        rPow = Range.clip(-gamepad2.right_stick_y, -0.5, 0.5);
 
-    //One Rev is 1120 ticks
-    void spatUp(int posR, int posL){
-        if(gamepad2.a && posR != 8){ //8 is a placeholder
-            robot.spatLeft.setTargetPosition(1); //placeholder
-            robot.spatRight.setTargetPosition(1); //placeholder
-            robot.spatRight.setPower(0.5);
-            robot.spatLeft.setPower(0.5);
+        robot.vexL.setPower(lPow);
+        robot.vexR.setPower(rPow);
 
+        if(!robot.in) {
+            if(!isIn && gamepad2.right_bumper) {
+                robot.intake.setPosition(robot.FINAL_INTAKE_POS);
+                robot.in = true;
+            }
+        } else {
+            if(!isIn && gamepad2.right_bumper) {
+                robot.intake.setPosition(robot.START_INTAKE_POS);
+                robot.in = false;
+            }
         }
 
+        isIn = gamepad2.right_bumper;
     }
 
-    void spatDown(int posR, int posL){
-        if(gamepad2.a && posR != 1){ //1 is a placeholder
-            robot.spatLeft.setTargetPosition(1); //placeholder
-            robot.spatRight.setTargetPosition(1); //placeholder
-            robot.spatRight.setPower(0.5);
-            robot.spatLeft.setPower(0.5);
-
+    void spatula() {
+        if(!robot.spatula) {
+            if(!spat && gamepad2.a) {
+                robot.lSpat.setTargetPosition(0);
+                robot.rSpat.setTargetPosition(0);
+                robot.lSpat.setPower(-0.5);
+                robot.rSpat.setPower(-0.5);
+                robot.spatula = true;
+            }
+        } else {
+            if(!spat && gamepad2.a) {
+                robot.lSpat.setTargetPosition(1);
+                robot.rSpat.setTargetPosition(1);
+                robot.lSpat.setPower(0.5);
+                robot.rSpat.setPower(0.5);
+                robot.spatula = false;
+            }
         }
-
+        spat = gamepad2.a;
     }
-
-
 }
-
-
