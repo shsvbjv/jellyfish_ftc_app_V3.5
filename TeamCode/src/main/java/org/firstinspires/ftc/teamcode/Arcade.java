@@ -82,7 +82,7 @@ public class Arcade extends LinearOpMode {
             telemetry.addData("Slow", gamepad1.left_bumper);
             telemetry.update();
         }
-    }
+    }//
 
     double scaleInput(double dVal) {
         double[] scaleArray = {0.0, 0.05, 0.09, 0.10, 0.12, 0.15, 0.18, 0.24,
