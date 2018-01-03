@@ -15,13 +15,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-
 
 import java.util.Locale;
 
 /**
- * Created by Feranno and Kyle on 9/23/17. 123
+ * Created by Ferannow and Kyle on 9/23/17. 123
  */
 
 @Autonomous(name = "Auto")
@@ -29,10 +27,8 @@ public class Auto extends LinearOpMode {
 
     //heading for gyro
     double heading;
-    Orientation angles;
+    double temp;
 
-    //gyro function from gyroToGo class
-    gyroToGo gyroToGo=new gyroToGo();
 
     VuforiaLocalizer vuforia;
 
@@ -112,17 +108,98 @@ public class Auto extends LinearOpMode {
 
 //------------------------------------------------------------------------------------------------------------------------------
         //start Autonomous
-        gyroToGo.gyroToGo(90);
-        sleep(1000);
-        gyroToGo.gyroToGo(180);
-        sleep(1000);
-        gyroToGo.gyroToGo(270);
-        sleep(1000);
-        gyroToGo.gyroToGo(0);
-        sleep(1000);
-        gyroToGo.gyroToGo(180);
+            /*
+             * See if any of the instances of {@link relicTemplate} are currently visible.
+             * {@link RelicRecoveryVuMark} is an enum which can have the following values:
+             * UNKNOWN, LEFT, CENTER, and RIGHT. When a VuMark is visible, something other than
+             * UNKNOWN will be returned by {@link RelicRecoveryVuMark#from(VuforiaTrackable)}.
+             */
+
+        if(isJewelRedFinal()) {
+            forward = false;
+        } else if(!isJewelRedFinal()) {
+            forward = true;
+        }
+
+        robot.armServo.setPosition(robot.DOWN_JARM_POS / 2.0);
+        robot.jewelHitter.setPosition(robot.SPANK_MIDDLE);
+        sleep(100);
+        robot.armServo.setPosition(robot.DOWN_JARM_POS);
 
 
+        spankJewel(forward);
+
+
+
+
+        grabTop();
+
+        sleep(500);
+
+        Winch(1);
+
+        sleep(400);
+
+
+
+        //Jewel is blue
+        if (forward) {
+
+
+            VerticalDriveDistance(0.4, 1*rev);
+            sleep(300);
+            robot.armServo.setPosition(robot.UP_JARM_POS);
+            sleep(300);
+            VerticalDriveDistance(0.3, 3*rev/2);
+            sleep(300);
+            RotateDistance(0.3, 3*rev/2 - 100);
+            sleep(300);
+            VerticalDriveDistance(0.3, 2*rev);
+            startTop();
+            VerticalDriveDistance(0.3, -rev/2);
+        } else if (!forward) {
+            //Jewel is red
+
+            RotateDistance(0.3, rev/2);
+            sleep(100);
+            robot.armServo.setPosition(robot.UP_JARM_POS);
+            RotateDistance(-0.3, -rev/2);
+            sleep(300);
+            VerticalDriveDistance(0.4, 3*rev);
+            sleep(300);
+            RotateDistance(0.3, 3*rev/2 - 100);
+            sleep(300);
+            VerticalDriveDistance(0.3, 2*rev);
+            startTop();
+            VerticalDriveDistance(0.3, -rev/2);
+
+        }
+
+        //sleep(100);
+
+        /*RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate);
+        while (!found) {
+            found = true;
+            telemetry.addData("VuMark", "%s visible", vuMark);
+            cryptobox_column = vuMark.toString();
+            OpenGLMatrix pose = ((VuforiaTrackableDefaultListener) relicTemplate.getListener()).getPose();
+            telemetry.addData("Pose", format(pose));
+            if (pose != null) {
+                VectorF trans = pose.getTranslation();
+                Orientation rot = Orientation.getOrientation(pose, AxesReference.EXTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES);
+                double tX = trans.get(0);
+                double tY = trans.get(1);
+                double tZ = trans.get(2);
+                double rX = rot.firstAngle;
+                double rY = rot.secondAngle;
+                double rZ = rot.thirdAngle;
+            } else {
+                telemetry.addData("VuMark", "not visible");
+            }
+            telemetry.update();
+        }*/
+
+        //}
     }
 
 
@@ -134,6 +211,12 @@ public class Auto extends LinearOpMode {
 
     //------------------------------------------------------------------------------------------------------------------------------
     //Driving Power Functions
+    void StopDriving() {
+        robot.frontLeft.setPower(0);
+        robot.frontRight.setPower(0);
+        robot.backLeft.setPower(0);
+        robot.backRight.setPower(0);
+    }
 
     //distance=rate*duration duration=distance/rate
     //power drives forward, -power drives backward
@@ -152,16 +235,16 @@ public class Auto extends LinearOpMode {
         robot.backRight.setPower(power);
     }
 
-    public void rotateRight(double power) {
+    void rotateRight(double power) {
         robot.frontLeft.setPower(power);
         robot.backLeft.setPower(power);
         robot.frontRight.setPower(-power);
         robot.backRight.setPower(-power);
     }
-    public void rotateLeft(double power) {
+
+    void rotateLeft(double power) {
         rotateRight(-power);
     }
-
 
 
     //------------------------------------------------------------------------------------------------------------------------------
@@ -220,7 +303,7 @@ public class Auto extends LinearOpMode {
 //        StopDriving();
     }
 
-    void RotateDistanceRight(double power, int distance) throws InterruptedException {
+    void RotateDistance(double power, int distance) throws InterruptedException {
         {
             //reset encoders
             robot.frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -248,123 +331,13 @@ public class Auto extends LinearOpMode {
         }
     }
 
-    void RotateDistanceLeft(double power, int distance) throws InterruptedException {
-    RotateDistanceRight(-power,-distance);
+    void Winch(double power) {
+        robot.lWinch.setPower(power);
+        robot.rWinch.setPower(power);
+        sleep(2000);
+        robot.lWinch.setPower(0.05);
+        robot.rWinch.setPower(0.05);
     }
-    //------------------------------------------------------------------------------------------------------------------------------
-//rotate using gyro Functions
-    void StopDriving() {
-        robot.frontLeft.setPower(0);
-        robot.frontRight.setPower(0);
-        robot.backLeft.setPower(0);
-        robot.backRight.setPower(0);
-    }
-    public void waitUntilStable() throws InterruptedException {
-        telemetry.update();
-        double degree = heading;
-        double previousreading = 0;
-        boolean stable = false;
-        while (stable == false) {
-            sleep(10);
-            previousreading = heading;
-            if (Math.abs(degree - previousreading) < 0.1) {
-                stable = true;
-            }
-        }
-    }
-    static class RangeResult {
-        public double distance;
-        public int position;
-    }
-    RangeResult inRange(double angle, double offset) {
-        RangeResult range = new RangeResult();
-        telemetry.update();
-        double degree = heading;
-        range.distance = Math.abs(angle - degree);
-        double right = angle - offset;
-        double left = angle + offset;
-        if (right < 0) {
-            right = right + 360;
-            if (degree > right || degree < left) {
-                range.position = 0;
-            } else {
-                range.position = 1;
-            }
-        } else if (left >= 360) {
-            left = left - 360;
-            if (degree < left || degree > right) {
-                range.position = 0;
-            } else {
-                range.position = -1;
-            }
-        } else {
-            if (degree > left) {
-                range.position = 1;
-            } else if (degree < right) {
-                range.position = -1;
-            } else {
-
-                range.position = 0;
-            }
-        }
-        if (range.distance > 180) {
-            range.distance = range.distance - 180;
-            if (range.position == -1) {
-                range.position = 1;
-            } else {
-                range.position = -1;
-            }
-        }
-        return range;
-    }
-    //turn left when -1
-    //turn right when 1
-    public void gyroToGo(double angle) throws InterruptedException {
-        double angleoffset = 3;
-        RangeResult rangeresult = inRange(angle, angleoffset);
-        int position = rangeresult.position;
-        int previousposition = rangeresult.position;
-        double distance = rangeresult.distance;
-        double previouspower = 0.5;
-        double powerlevel = 0.5;
-        while (true) {
-            //update rangeresult
-            rangeresult = inRange(angle, angleoffset);
-            position = rangeresult.position;
-            distance = rangeresult.distance;
-
-            //adjust power level
-            if(distance>70){
-                powerlevel=0.6;
-            }
-            else{
-                powerlevel=0.5;
-            }
-
-            //turn or stop
-            if (position == 0) {
-                StopDriving();
-                waitUntilStable();
-                rangeresult = inRange(angle, angleoffset);
-                if (rangeresult.position == 0) {
-                    break;
-                }
-            } else if (position == 1) {
-                if (previouspower != powerlevel || previousposition != position) {
-                    rotateRight(powerlevel);
-                    previousposition = position;
-                    previouspower = powerlevel;
-                }
-            } else if (position == -1) {
-                if (previouspower != powerlevel || previousposition != position) {
-                    rotateLeft(powerlevel);
-                    previousposition = position;
-                    previouspower = powerlevel;
-                }
-            }
-        }
-    }
-
 
 //------------------------------------------------------------------------------------------------------------------------------
     //Winching functions
@@ -474,10 +447,8 @@ public class Auto extends LinearOpMode {
 
                         //heading is a string, so the below code makes it a long so it can actually be used
                         heading = Double.parseDouble(formatAngle(robot.angles.angleUnit, robot.angles.firstAngle));
-                        if(heading<0){
-                            heading=heading+360;
-                        }
-
+                        temp = heading;
+                        heading = (temp+360)%360;
 
                         return formatAngle(robot.angles.angleUnit, heading);
 
@@ -498,11 +469,89 @@ public class Auto extends LinearOpMode {
         return String.format(Locale.getDefault(), "%.1f", AngleUnit.DEGREES.normalize(degrees));
     }
 
+    void gyroRotateRight(double power) {
 
+        robot.frontLeft.setPower(power);
+        robot.backLeft.setPower(power);
+        robot.frontRight.setPower(-power);
+        robot.backRight.setPower(-power);
+
+        while (heading>-90) {
+            telemetry.update();
+        }
+
+        StopDriving();
+    }
+
+    void gyroRotateLeft(double power, double ngle) {
+        //turn left
+        rotateLeft(power+0.2);
+
+        while(heading<0.6*ngle){
+            telemetry.update();
+        }
+        //gradually slow turn
+        for(int x=20; x>0; x--) {
+            double addpower=power + (x/100);
+            rotateLeft(addpower);
+            telemetry.update();
+            sleep(50);
+        }
+
+        while (heading <ngle+5) {
+            telemetry.update();
+        }
+        StopDriving();
+        //turn right(major adjust)
+        rotateRight(power);
+
+        while(heading>ngle+2){
+            telemetry.update();
+        }
+        //adjusting to range of 2 degrees
+        //turn left, then adjust right
+
+        while(ngle-2>heading) {
+            //turn left
+            robot.frontLeft.setPower(-power);
+            rotateLeft(power);
+            while (heading < ngle+5) {
+                telemetry.update();
+            }
+            StopDriving();
+            //turn right
+            rotateRight(power);
+
+            while (heading > ngle+2) {
+                telemetry.update();
+            }
+        }
+
+        StopDriving();
+    }
 
     void setHeadingToZero() {
         robot.gyroInit();
         robot.imu.startAccelerationIntegration(new Position(), new Velocity(), 1000);
     }
+
+    void spankJewel(boolean isJewelRedFinal){
+        robot.jewelHitter.setPosition(robot.SPANK_MIDDLE);
+        sleep(300);
+
+        if(isJewelRedFinal){
+            robot.jewelHitter.setPosition(robot.SPANKE_RIGHT);
+            sleep(300);
+
+            //Pur jarm in position to be moved up
+            robot.jewelHitter.setPosition(robot.SPANK_LEFT);
+        }
+        else{
+            robot.jewelHitter.setPosition(robot.SPANK_LEFT);
+        }
+
+        robot.armServo.setPosition(robot.UP_JARM_POS);
+    }
+
 
 }
