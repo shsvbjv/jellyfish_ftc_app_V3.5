@@ -242,7 +242,7 @@ public class Arcade extends LinearOpMode {
             robot.spatula = false;
         }
     }
-
+//
     void strafeAdj() {
         int top;
 
