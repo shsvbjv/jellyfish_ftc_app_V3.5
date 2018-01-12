@@ -118,17 +118,12 @@ public class Auto extends LinearOpMode {
 
         robot.armServo.setPosition(robot.DOWN_JARM_POS);
 
-        if(isJewelRedFinal()) {
-            forward = false;
-        } else if(!isJewelRedFinal()) {
-            forward = true;
-        }
+        forward = isJewelRedFinal();
 
         grabTop();
 
         sleep(500);
 
-        Winch(1);
 
         sleep(400);
 
@@ -314,14 +309,6 @@ public class Auto extends LinearOpMode {
 
             //          StopDriving();
         }
-    }
-
-    void Winch(double power) {
-        robot.lWinch.setPower(power);
-        robot.rWinch.setPower(power);
-        sleep(2000);
-        robot.lWinch.setPower(0.05);
-        robot.rWinch.setPower(0.05);
     }
 
 //------------------------------------------------------------------------------------------------------------------------------
