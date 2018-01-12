@@ -115,43 +115,19 @@ public class Auto extends LinearOpMode {
              * UNKNOWN will be returned by {@link RelicRecoveryVuMark#from(VuforiaTrackable)}.
              */
 
-        if(isJewelRedFinal()) {
-            forward = false;
-        } else if(!isJewelRedFinal()) {
-            forward = true;
-        }
 
-        robot.armServo.setPosition(robot.DOWN_JARM_POS / 2.0);
-        robot.jewelHitter.setPosition(robot.SPANK_MIDDLE);
-        sleep(100);
         robot.armServo.setPosition(robot.DOWN_JARM_POS);
 
-
-        spankJewel(forward);
-
-        //remove later
-        while(true){
-          telemetry.addData("jewelHitter Position", robot.jewelHitter.getPosition()  );
-          telemetry.update();
-        }
-
-        //remove below comment marker
-        /*
+        forward = isJewelRedFinal();
 
         grabTop();
 
         sleep(500);
 
-        //Winch(1);
 
         sleep(400);
 
-
-
-        //Jewel is blue
         if (forward) {
-
-
             VerticalDriveDistance(0.4, 1*rev);
             sleep(300);
             robot.armServo.setPosition(robot.UP_JARM_POS);
@@ -164,8 +140,6 @@ public class Auto extends LinearOpMode {
             startTop();
             VerticalDriveDistance(0.3, -rev/2);
         } else if (!forward) {
-            //Jewel is red
-
             RotateDistance(0.3, rev/2);
             sleep(100);
             robot.armServo.setPosition(robot.UP_JARM_POS);
@@ -206,8 +180,6 @@ public class Auto extends LinearOpMode {
         }*/
 
         //}
-
-
     }
 
 
@@ -337,14 +309,6 @@ public class Auto extends LinearOpMode {
 
             //          StopDriving();
         }
-    }
-
-    void Winch(double power) {
-        //robot.lWinch.setPower(power);
-        //robot.rWinch.setPower(power);
-        sleep(2000);
-        //robot.lWinch.setPower(0.05);
-        //robot.rWinch.setPower(0.05);
     }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -542,24 +506,5 @@ public class Auto extends LinearOpMode {
         robot.gyroInit();
         robot.imu.startAccelerationIntegration(new Position(), new Velocity(), 1000);
     }
-
-    void spankJewel(boolean isJewelRedFinal){
-        robot.jewelHitter.setPosition(robot.SPANK_MIDDLE);
-        sleep(300);
-
-        if(isJewelRedFinal){
-            robot.jewelHitter.setPosition(robot.SPANK_RIGHT);
-            sleep(300);
-
-            //Pur jarm in position to be moved up
-            robot.jewelHitter.setPosition(robot.SPANK_LEFT);
-        }
-        else{
-            robot.jewelHitter.setPosition(robot.SPANK_LEFT);
-        }
-
-        robot.armServo.setPosition(robot.UP_JARM_POS);
-    }
-
 
 }

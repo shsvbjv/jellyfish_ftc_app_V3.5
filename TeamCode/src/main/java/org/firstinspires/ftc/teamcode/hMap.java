@@ -68,20 +68,20 @@ public class hMap {
     public ColorSensor color_sensor;
 
     //Values for encoders and servos
-    public static final double START_CHOP_POS_A  = 0.1;
-    public static final double START_CHOP_POS_B  = 0.9;
-    public static final double GRAB_CHOP_POS_A   = 0.4;
-    public static final double GRAB_CHOP_POS_B   = 0.6;
+    public static final double START_CHOP_POS_A  = 0.9;
+    public static final double START_CHOP_POS_B  = 0.1;
+    public static final double GRAB_CHOP_POS_A   = 1;
+    public static final double GRAB_CHOP_POS_B   = 0;
     public static final double START_INTAKE_POS  = 0;
     public static final double FINAL_INTAKE_POS  = 1;
 
     //Start and end positions for spatula
-    public static final int UP_SPAT_POS = 1000;
+    public static final int UP_SPAT_POS = -760;
     public static final int DOWN_SPAT_POS = 0;
 
     //Start and end positions for the jewel arm
-    public static final double UP_JARM_POS = 0;
-    public static final double DOWN_JARM_POS = 0.75;
+    public static final double UP_JARM_POS = 0.1;
+    public static final double DOWN_JARM_POS = 1;
 
     //Spank
     public static final double SPANK_MIDDLE = 0.5;
@@ -113,22 +113,13 @@ public class hMap {
         backLeft        = hwMap.get(DcMotor.class, "backLeft")        ;
         backRight       = hwMap.get(DcMotor.class, "backRight")       ;
 
-        spatLeft = hwMap.get(DcMotor.class, "spatLeft");
-        spatRight = hwMap.get(DcMotor.class, "spatRight");
-
         frontRight.setDirection(DcMotor.Direction.REVERSE)            ;
         backRight .setDirection(DcMotor.Direction.REVERSE)            ;
-
-        spatLeft.setDirection(DcMotor.Direction.REVERSE)            ;
 
         frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         backLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         backRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-        //RUN_TO_POSITION = set encoder value and motor will go there and hold
-        spatRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        spatLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         frontLeft.setPower(0);
         frontRight.setPower(0);
@@ -139,8 +130,13 @@ public class hMap {
         lSpat           = hwMap.get(DcMotor.class, "lSpat"  )           ;
         rSpat           = hwMap.get(DcMotor.class, "rSpat"  )           ;
 
-        rSpat.setDirection(DcMotor.Direction.REVERSE)                  ;
+        rSpat.setDirection(DcMotor.Direction.REVERSE)                               ;
 
+        lSpat.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rSpat.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        lSpat.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rSpat.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         /* Servos */
 
@@ -174,5 +170,21 @@ public class hMap {
 
         imu = hwMap.get(BNO055IMU.class, "imu");
         imu.initialize(parameters);
+    }
+
+    public void chop(String command) {
+        if(command == "OPEN") {
+            botServL.setPosition(START_CHOP_POS_A);
+            botServR.setPosition(START_CHOP_POS_B);
+            topServL.setPosition(START_CHOP_POS_B + 0.1);
+            topServR.setPosition(START_CHOP_POS_A - 0.4);
+            bChop = false;
+        } else if(command == "GRAB") {
+            botServL.setPosition(GRAB_CHOP_POS_A);
+            botServR.setPosition(GRAB_CHOP_POS_B);
+            topServL.setPosition(GRAB_CHOP_POS_B + 0.1);
+            topServR.setPosition(GRAB_CHOP_POS_A - 0.4);
+            bChop = true;
+        }
     }
 }
