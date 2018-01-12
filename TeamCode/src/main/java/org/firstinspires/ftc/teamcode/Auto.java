@@ -15,11 +15,13 @@ import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+
 
 import java.util.Locale;
 
 /**
- * Created by Ferannow and Kyle on 9/23/17. 123
+ * Created by Feranno and Kyle on 9/23/17. 123
  */
 
 @Autonomous(name = "Auto")
@@ -27,7 +29,7 @@ public class Auto extends LinearOpMode {
 
     //heading for gyro
     double heading;
-    double temp;
+    Orientation angles;
 
 
     VuforiaLocalizer vuforia;
@@ -215,16 +217,16 @@ public class Auto extends LinearOpMode {
         robot.backRight.setPower(power);
     }
 
-    void rotateRight(double power) {
+    public void rotateRight(double power) {
         robot.frontLeft.setPower(power);
         robot.backLeft.setPower(power);
         robot.frontRight.setPower(-power);
         robot.backRight.setPower(-power);
     }
-
-    void rotateLeft(double power) {
+    public void rotateLeft(double power) {
         rotateRight(-power);
     }
+
 
 
     //------------------------------------------------------------------------------------------------------------------------------
@@ -419,8 +421,10 @@ public class Auto extends LinearOpMode {
 
                         //heading is a string, so the below code makes it a long so it can actually be used
                         heading = Double.parseDouble(formatAngle(robot.angles.angleUnit, robot.angles.firstAngle));
-                        temp = heading;
-                        heading = (temp+360)%360;
+                        if(heading<0){
+                            heading=heading+360;
+                        }
+
 
                         return formatAngle(robot.angles.angleUnit, heading);
 
@@ -441,66 +445,7 @@ public class Auto extends LinearOpMode {
         return String.format(Locale.getDefault(), "%.1f", AngleUnit.DEGREES.normalize(degrees));
     }
 
-    void gyroRotateRight(double power) {
 
-        robot.frontLeft.setPower(power);
-        robot.backLeft.setPower(power);
-        robot.frontRight.setPower(-power);
-        robot.backRight.setPower(-power);
-
-        while (heading>-90) {
-            telemetry.update();
-        }
-
-        StopDriving();
-    }
-
-    void gyroRotateLeft(double power, double ngle) {
-        //turn left
-        rotateLeft(power+0.2);
-
-        while(heading<0.6*ngle){
-            telemetry.update();
-        }
-        //gradually slow turn
-        for(int x=20; x>0; x--) {
-            double addpower=power + (x/100);
-            rotateLeft(addpower);
-            telemetry.update();
-            sleep(50);
-        }
-
-        while (heading <ngle+5) {
-            telemetry.update();
-        }
-        StopDriving();
-        //turn right(major adjust)
-        rotateRight(power);
-
-        while(heading>ngle+2){
-            telemetry.update();
-        }
-        //adjusting to range of 2 degrees
-        //turn left, then adjust right
-
-        while(ngle-2>heading) {
-            //turn left
-            robot.frontLeft.setPower(-power);
-            rotateLeft(power);
-            while (heading < ngle+5) {
-                telemetry.update();
-            }
-            StopDriving();
-            //turn right
-            rotateRight(power);
-
-            while (heading > ngle+2) {
-                telemetry.update();
-            }
-        }
-
-        StopDriving();
-    }
 
     void setHeadingToZero() {
         robot.gyroInit();
