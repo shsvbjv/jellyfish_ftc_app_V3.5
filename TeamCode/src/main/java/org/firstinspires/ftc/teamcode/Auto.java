@@ -136,20 +136,20 @@ public class Auto extends LinearOpMode {
             sleep(300);
             VerticalDriveDistance(0.3, 3*rev/2);
             sleep(300);
-            RotateDistance(0.3, 3*rev/2 - 100);
+            RotateDistanceRight(0.3, 3*rev/2 - 100);
             sleep(300);
             VerticalDriveDistance(0.3, 2*rev);
             startTop();
             VerticalDriveDistance(0.3, -rev/2);
         } else if (!forward) {
-            RotateDistance(0.3, rev/2);
+            RotateDistanceRight(0.3, rev/2);
             sleep(100);
             robot.armServo.setPosition(robot.UP_JARM_POS);
-            RotateDistance(-0.3, -rev/2);
+            RotateDistanceRight(-0.3, -rev/2);
             sleep(300);
             VerticalDriveDistance(0.4, 3*rev);
             sleep(300);
-            RotateDistance(0.3, 3*rev/2 - 100);
+            RotateDistanceRight(0.3, 3*rev/2 - 100);
             sleep(300);
             VerticalDriveDistance(0.3, 2*rev);
             startTop();
@@ -193,12 +193,6 @@ public class Auto extends LinearOpMode {
 
     //------------------------------------------------------------------------------------------------------------------------------
     //Driving Power Functions
-    void StopDriving() {
-        robot.frontLeft.setPower(0);
-        robot.frontRight.setPower(0);
-        robot.backLeft.setPower(0);
-        robot.backRight.setPower(0);
-    }
 
     //distance=rate*duration duration=distance/rate
     //power drives forward, -power drives backward
@@ -285,7 +279,7 @@ public class Auto extends LinearOpMode {
 //        StopDriving();
     }
 
-    void RotateDistance(double power, int distance) throws InterruptedException {
+    void RotateDistanceRight(double power, int distance) throws InterruptedException {
         {
             //reset encoders
             robot.frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -312,6 +306,118 @@ public class Auto extends LinearOpMode {
             //          StopDriving();
         }
     }
+
+    void RotateDistanceLeft(double power, int distance) throws InterruptedException {
+    RotateDistanceRight(-power,-distance);
+    }
+    //------------------------------------------------------------------------------------------------------------------------------
+//rotate using gyro Functions
+    void StopDriving() {
+        robot.frontLeft.setPower(0);
+        robot.frontRight.setPower(0);
+        robot.backLeft.setPower(0);
+        robot.backRight.setPower(0);
+    }
+    public void waitUntilStable() throws InterruptedException {
+        telemetry.update();
+        double degree = heading;
+        double previousreading = 0;
+        boolean stable = false;
+        while (stable == false) {
+            sleep(10);
+            previousreading = heading;
+            if (Math.abs(degree - previousreading) < 0.1) {
+                stable = true;
+            }
+        }
+    }
+    static class RangeResult {
+        public double distance;
+        public int position;
+    }
+    RangeResult inRange(double angle, double offset) {
+        RangeResult range = new RangeResult();
+        telemetry.update();
+        double degree = heading;
+        range.distance = Math.abs(angle - degree);
+        double right = angle - offset;
+        double left = angle + offset;
+        if (right < 0) {
+            right = right + 360;
+            if (degree > right || degree < left) {
+                range.position = 0;
+            } else {
+                range.position = 1;
+            }
+        } else if (left >= 360) {
+            left = left - 360;
+            if (degree < left || degree > right) {
+                range.position = 0;
+            } else {
+                range.position = -1;
+            }
+        } else {
+            if (degree > left) {
+                range.position = 1;
+            } else if (degree < right) {
+                range.position = -1;
+            } else {
+                range.position = 0;
+            }
+        }
+        if (range.distance > 180) {
+            range.distance = range.distance - 180;
+            if (range.position == -1) {
+                range.position = 1;
+            } else {
+                range.position = 1;
+            }
+        }
+        return range;
+    }
+    //turn left when -1
+    //turn right when 1
+    public void gyroToGo(double angle) throws InterruptedException {
+        double angleoffset = 3;
+        RangeResult rangeresult = inRange(angle, angleoffset);
+        int position = rangeresult.position;
+        int previousposition = rangeresult.position;
+        double distance = rangeresult.distance;
+        double previouspower = 0.3;
+        double powerlevel = 0.3;
+        while (true) {
+            //update rangeresult
+            rangeresult = inRange(angle, angleoffset);
+            position = rangeresult.position;
+            distance = rangeresult.distance;
+
+            //adjust power level
+            powerlevel = 0.3;
+
+            //turn or stop
+            if (position == 0) {
+                StopDriving();
+                waitUntilStable();
+                rangeresult = inRange(angle, angleoffset);
+                if (rangeresult.position == 0) {
+                    break;
+                }
+            } else if (position == 1) {
+                if (previouspower != powerlevel || previousposition != position) {
+                    rotateRight(powerlevel);
+                    previousposition = position;
+                    previouspower = powerlevel;
+                }
+            } else if (position == -1) {
+                if (previouspower != powerlevel || previousposition != position) {
+                    rotateLeft(powerlevel);
+                    previousposition = position;
+                    previouspower = powerlevel;
+                }
+            }
+        }
+    }
+
 
 //------------------------------------------------------------------------------------------------------------------------------
     //Winching functions
