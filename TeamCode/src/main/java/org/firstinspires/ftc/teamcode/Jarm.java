@@ -29,22 +29,25 @@ public class Jarm extends LinearOpMode {
 
         robot.armServo.setPosition(robot.DOWN_JARM_POS);
 
-        sleep(1000);
+        sleep(1500);
 
         forward = isJewelRedFinal();
 
         if(forward) {
             robot.jarmEXT.setPosition(0);
-            sleep(500);
+            sleep(3000);
             robot.armServo.setPosition(robot.UP_JARM_POS);
+            sleep(3000);
         } else {
             robot.jarmEXT.setPosition(1);
-            sleep(200);
+            sleep(3000);
             robot.armServo.setPosition(robot.UP_JARM_POS);
-            sleep(200);
-            robot.jarmEXT.setPosition(0);
             sleep(500);
+            robot.jarmEXT.setPosition(0);
+            sleep(3000);
         }
+
+
     }
 
     public boolean isJewelRed() {

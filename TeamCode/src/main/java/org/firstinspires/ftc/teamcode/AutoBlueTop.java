@@ -65,6 +65,8 @@ public class AutoBlueTop extends LinearOpMode {
 
         setHeadingToZero();
 
+        robot.armServo.setPosition(robot.UP_JARM_POS);
+
         robot.color_sensor.enableLed(true);
 
 
@@ -128,13 +130,13 @@ public class AutoBlueTop extends LinearOpMode {
              */
 
 
-        robot.armServo.setPosition(robot.DOWN_JARM_POS);
+        robot.botServL.setPosition(robot.GRAB_CHOP_POS_A);
+        robot.botServR.setPosition(robot.GRAB_CHOP_POS_B);
+        robot.topServL.setPosition(robot.GRAB_CHOP_POS_B + 0.1);
+        robot.topServR.setPosition(robot.GRAB_CHOP_POS_A - 0.4);
+        robot.bChop = true;
 
         forward = isJewelRedFinal();
-
-        grabTop();
-
-        sleep(400);
 
         while (!found) {
             RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate);
@@ -169,65 +171,25 @@ public class AutoBlueTop extends LinearOpMode {
                 telemetry.addData("VuMark", "not visible");
             }
             telemetry.update();
-            if(runtime.seconds() > 5) {
+            if(runtime.seconds() > 1) {
                 break;
             }
         }
 
-        if (forward) {
-            robot.jarmEXT.setPosition(0);
-            sleep(500);
-            robot.armServo.setPosition(robot.UP_JARM_POS);
-            sleep(300);
-            sleep(100);
-            VerticalDriveDistance(-0.4, -2 * rev);
-            sleep(100);
-            RotateDistance(-0.8, -3 * rev / 2);
-            sleep(100);
-            VerticalDriveDistance(-0.5, -2 * rev);
-            sleep(100);
-            if(cryptobox_column == "LEFT") {
-                VerticalDriveDistance(0.3, 7 * rev / 5 + 200);
-            } else if(cryptobox_column == "CENTER") {
-                VerticalDriveDistance(0.3, 2 * rev);
-            } else {
-                VerticalDriveDistance(0.3, 14 * rev / 5);
-            }
-            sleep(100);
-            RotateDistance(-0.5, -3 * rev / 2 + 100);
-            sleep(200);
-            VerticalDriveDistance(0.5, 3 * rev / 2);
-            sleep(200);
-            startTop();
-            sleep(200);
-            VerticalDriveDistance(-0.3, -rev / 4);
-        } else if (!forward) {
-            robot.jarmEXT.setPosition(1);
-            sleep(200);
-            robot.armServo.setPosition(robot.UP_JARM_POS);
-            sleep(200);
-            robot.jarmEXT.setPosition(0);
-            sleep(300);
-            RotateDistance(-0.8, -3 * rev / 2);
-            sleep(100);
-            VerticalDriveDistance(-0.5, -2 * rev);
-            sleep(100);
-            if(cryptobox_column == "LEFT") {
-                VerticalDriveDistance(0.3, 7 * rev / 5 + 100);
-            } else if(cryptobox_column == "CENTER") {
-                VerticalDriveDistance(0.3, 2 * rev);
-            } else {
-                VerticalDriveDistance(0.3, 14 * rev / 5);
-            }
-            sleep(100);
-            RotateDistance(-0.5, -3 * rev / 2 + 100);
-            sleep(200);
-            VerticalDriveDistance(0.5, 3 * rev / 2);
-            sleep(200);
-            startTop();
-            sleep(200);
-            VerticalDriveDistance(-0.3, -rev / 4);
-        }
+        VerticalDriveDistance(1, 2*rev);
+        sleep(300);
+        RotateDistance(1, rev);
+        sleep(300);
+        VerticalDriveDistance(-0.6, -2*rev);
+        sleep(300);
+        VerticalDriveDistance(1,2*rev);
+        sleep(500);
+        RotateDistance(-1, -rev);
+        sleep(500);
+        VerticalDriveDistance(-1, -2*rev);
+
+
+
 
         //sleep(100);
 
@@ -281,14 +243,6 @@ public class AutoBlueTop extends LinearOpMode {
         robot.backRight.setPower(power);
     }
 
-    //power drives right, -power drives left
-    void HorizontalStrafing(double power) {
-        robot.frontLeft.setPower(power);
-        robot.frontRight.setPower(-power);
-        robot.backLeft.setPower(-power);
-        robot.backRight.setPower(power);
-    }
-
     void rotateRight(double power) {
         robot.frontLeft.setPower(power);
         robot.backLeft.setPower(power);
@@ -306,7 +260,6 @@ public class AutoBlueTop extends LinearOpMode {
 
 
     void VerticalDriveDistance(double power, int distance) throws InterruptedException {
-        //reset encoders
         robot.frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         robot.frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         robot.backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -327,38 +280,9 @@ public class AutoBlueTop extends LinearOpMode {
 
         while (robot.frontLeft.isBusy() && robot.frontRight.isBusy() && robot.backLeft.isBusy() && robot.backRight.isBusy()) {
         }
-
-        //StopDriving();
-    }
-
-    void HorizontalStrafingDistance(double power, int distance) throws InterruptedException {
-        //reset encoders
-        robot.frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        robot.frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        robot.frontLeft.setTargetPosition(distance);
-        robot.frontRight.setTargetPosition(-distance);
-        robot.backLeft.setTargetPosition(-distance);
-        robot.backRight.setTargetPosition(distance);
-
-        // HorizontalStrafing(power);
-
-        while (robot.frontLeft.isBusy() && robot.frontRight.isBusy() && robot.backLeft.isBusy() && robot.backRight.isBusy()) {
-            //wait until robot stops
-        }
-
-//        StopDriving();
     }
 
     void RotateDistance(double power, int distance) throws InterruptedException {
-        {
             //reset encoders
             robot.frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             robot.frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -378,44 +302,8 @@ public class AutoBlueTop extends LinearOpMode {
             rotateRight(power);
 
             while (robot.frontLeft.isBusy() && robot.frontRight.isBusy() && robot.backLeft.isBusy() && robot.backRight.isBusy()) {
-                //wait until robot stops
             }
-
-            //          StopDriving();
-        }
     }
-
-//------------------------------------------------------------------------------------------------------------------------------
-    //Winching functions
-
-    void grabBottom() throws InterruptedException {
-        robot.botServL.setPosition(robot.GRAB_CHOP_POS_A + 0.1);
-        robot.botServR.setPosition(robot.GRAB_CHOP_POS_B);
-        robot.bChop = true;
-        sleep(300);
-    }
-
-    void startBottom() throws InterruptedException {
-        robot.botServL.setPosition(robot.START_CHOP_POS_A);
-        robot.botServR.setPosition(robot.START_CHOP_POS_B + 0.1);
-        robot.bChop = false;
-        sleep(300);
-    }
-
-    void grabTop() throws InterruptedException {
-        robot.topServL.setPosition(robot.GRAB_CHOP_POS_B - 0.2);
-        robot.topServR.setPosition(robot.GRAB_CHOP_POS_A);
-        robot.tChop = true;
-        sleep(300);
-    }
-
-    void startTop() throws InterruptedException {
-        robot.topServL.setPosition(robot.START_CHOP_POS_B - 0.1);
-        robot.topServR.setPosition(robot.START_CHOP_POS_A - 0.1);
-        robot.tChop = false;
-        sleep(300);
-    }
-
 //------------------------------------------------------------------------------------------------------------------------------
     //isJewelRed
 

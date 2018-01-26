@@ -13,8 +13,11 @@ import com.qualcomm.robotcore.util.Range;
 public class Arcade extends LinearOpMode {
     boolean topServo = false;
     boolean botServo = false;
+    boolean relServo = false;
     boolean isIn     = false;
     boolean spat     = false;
+    boolean over     = false;
+    boolean rkao     = false;
     double lPow = 0;
     double rPow = 0;
     double flStr;
@@ -22,7 +25,6 @@ public class Arcade extends LinearOpMode {
     double blStr;
     double brStr;
     double power = 0;
-    double strafe = 0;
     double turn = 0;
     double FL, FR, BL, BR;
 
@@ -44,6 +46,7 @@ public class Arcade extends LinearOpMode {
         robot.in = false;
         robot.tChop = false;
         robot.bChop = false;
+        robot.relic.setPosition(1);
 
         waitForStart();
 
@@ -52,6 +55,7 @@ public class Arcade extends LinearOpMode {
             servo();
             intake();
             spatula();
+            relic();
 
             if(gamepad1.x) {
                 robot.frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -65,35 +69,51 @@ public class Arcade extends LinearOpMode {
             }
 
             power = scaleInput(Range.clip(-gamepad1.right_stick_y, -1, 1));
-            strafe = scaleInput(Range.clip(-gamepad1.right_stick_x, -0.8, 0.8));
             turn = scaleInput(Range.clip(-gamepad1.left_stick_x, -1, 1));
 
-            FL = power + turn - strafe;
-            BL = power + turn + strafe;
-            FR = power - turn + strafe;
-            BR = power - turn - strafe;
+            FL = power + turn;
+            BL = power + turn;
+            FR = power - turn;
+            BR = power - turn;
 
             if (gamepad1.right_bumper) {
-                FL /= 3;
-                BL /= 3;
-                FR /= 3;
-                BR /= 3;
-            } else if(gamepad1.dpad_left) {
-                FL = -0.25;
-                BL = -0.25;
-                FR = 0.25;
-                BR = 0.25;
+                FL /= 2;
+                BL /= 2;
+                FR /= 2;
+                BR /= 2;
             } else if(gamepad1.dpad_right) {
-                FL = 0.25;
-                BL = 0.25;
-                FR = -0.25;
-                BR = -0.25;
+                FL = -0.5;
+                BL = -0.5;
+                FR = 0.5;
+                BR = 0.5;
+            } else if(gamepad1.dpad_left) {
+                FL = 0.5;
+                BL = 0.5;
+                FR = -0.5;
+                BR = -0.5;
             }
 
             robot.frontLeft.setPower(FL);
             robot.backLeft.setPower(BL);
             robot.frontRight.setPower(FR);
             robot.backRight.setPower(BR);
+
+            if(gamepad2.dpad_right) {
+                robot.winch(0.7);
+            } else if(gamepad2.dpad_left) {
+                robot.winch(-0.4);
+            } else {
+                robot.winch(0);
+            }
+
+            if(gamepad2.dpad_up) {
+                //robot.pitch(0.6);
+            } else if(gamepad2.dpad_down) {
+                //robot.pitch(0);
+            } else {
+                //robot.pitch(0.05);
+            }
+
 
             telemetry.addData("Motors", "FL (%.2f), FR (%.2f), BL (%.2f), BR (%.2f)", FL, FR, BL, BR);
             telemetry.addData("Servos", "TL (%.2f), TR (%.2f), BL (%.2f), BR (%.2f)", robot.topServL.getPosition(), robot.topServR.getPosition(), robot.botServL.getPosition(), robot.botServR.getPosition());
@@ -136,19 +156,11 @@ public class Arcade extends LinearOpMode {
 
         if (!robot.bChop) {
             if (!botServo && gamepad2.b) {
-                robot.botServL.setPosition(robot.GRAB_CHOP_POS_A);
-                robot.botServR.setPosition(robot.GRAB_CHOP_POS_B);
-                robot.topServL.setPosition(robot.GRAB_CHOP_POS_B + 0.1);
-                robot.topServR.setPosition(robot.GRAB_CHOP_POS_A - 0.4);
-                robot.bChop = true;
+                robot.chop("GRAB");
             }
         } else {
             if (!botServo && gamepad2.b) {
-                robot.botServL.setPosition(robot.START_CHOP_POS_A);
-                robot.botServR.setPosition(robot.START_CHOP_POS_B);
-                robot.topServL.setPosition(robot.START_CHOP_POS_B + 0.1);
-                robot.topServR.setPosition(robot.START_CHOP_POS_A - 0.4);
-                robot.bChop = false;
+                robot.chop("OPEN");
             }
         }
 
@@ -195,62 +207,96 @@ public class Arcade extends LinearOpMode {
     void spatula() {
         if(!robot.spatula) {
             if(!spat && gamepad2.a) {
+                robot.chop("OPEN");
                 robot.lSpat.setTargetPosition(robot.DOWN_SPAT_POS);
                 robot.rSpat.setTargetPosition(robot.DOWN_SPAT_POS);
                 robot.lSpat.setPower(0.4);
                 robot.rSpat.setPower(0.4);
                 robot.spatula = true;
-                sleep(200);
-                robot.botServL.setPosition(robot.GRAB_CHOP_POS_A);
-                robot.botServR.setPosition(robot.GRAB_CHOP_POS_B);
-                robot.topServL.setPosition(robot.GRAB_CHOP_POS_B + 0.1);
-                robot.topServR.setPosition(robot.GRAB_CHOP_POS_A - 0.4);
-                robot.bChop = true;
-                if(robot.lSpat.getCurrentPosition() > -20 || robot.rSpat.getCurrentPosition() > -20) {
-                    robot.botServL.setPosition(robot.START_CHOP_POS_A);
-                    robot.botServR.setPosition(robot.START_CHOP_POS_B);
-                    robot.topServL.setPosition(robot.START_CHOP_POS_B + 0.1);
-                    robot.topServR.setPosition(robot.START_CHOP_POS_A - 0.4);
-                    robot.bChop = false;
-                }
+                sleep(400);
+                robot.chop("GRAB");
+                robot.ov = false;
             }
         } else {
             if(!spat && gamepad2.a) {
                 robot.intake.setPosition(robot.START_INTAKE_POS);
                 robot.in = false;
-                robot.botServL.setPosition(robot.GRAB_CHOP_POS_A);
-                robot.botServR.setPosition(robot.GRAB_CHOP_POS_B);
-                robot.topServL.setPosition(robot.GRAB_CHOP_POS_B + 0.1);
-                robot.topServR.setPosition(robot.GRAB_CHOP_POS_A - 0.4);
-                robot.bChop = true;
+                robot.chop("GRAB");
                 robot.lSpat.setTargetPosition(robot.UP_SPAT_POS);
                 robot.rSpat.setTargetPosition(robot.UP_SPAT_POS);
                 robot.lSpat.setPower(-0.7);
                 robot.rSpat.setPower(-0.7);
                 robot.spatula = false;
+                robot.ov = false;
             }
         }
         spat = gamepad2.a;
 
-        if(gamepad2.dpad_up) {
-            robot.lSpat.setPower(-0.5);
-            robot.rSpat.setPower(-0.5);
-            robot.spatula = false;
-        } else if(gamepad2.dpad_down) {
-            robot.lSpat.setPower(0.5);
-            robot.rSpat.setPower(0.5);
-            robot.spatula = false;
+        if(!robot.ov) {
+            if (!over && gamepad2.y && !robot.spatula) {
+                robot.intake.setPosition(robot.START_INTAKE_POS);
+                robot.in = false;
+                robot.chop("GRAB");
+                robot.lSpat.setTargetPosition(robot.OVER_SPAT_POS);
+                robot.rSpat.setTargetPosition(robot.OVER_SPAT_POS);
+                robot.lSpat.setPower(-0.7);
+                robot.rSpat.setPower(-0.7);
+                robot.spatula = true;
+                robot.ov = true;
+            }
+        } else {
+            if(!over && gamepad2.y) {
+                robot.lSpat.setTargetPosition(robot.UP_SPAT_POS);
+                robot.rSpat.setTargetPosition(robot.UP_SPAT_POS);
+                robot.lSpat.setPower(0.3);
+                robot.rSpat.setPower(0.3);
+                robot.spatula = true;
+                robot.ov = false;
+            }
+        }
+        over = gamepad2.y;
+
+        if(!robot.rko) {
+            if(!rkao && gamepad2.left_trigger != 0) {
+                robot.chop("GRAB");
+                robot.lSpat.setTargetPosition(robot.RKO_SPAT_POS);
+                robot.rSpat.setTargetPosition(robot.RKO_SPAT_POS);
+                robot.lSpat.setPower(-0.7);
+                robot.rSpat.setPower(-0.7);
+                robot.ov = false;
+                robot.spatula = true;
+            }
+        } else {
+            if(!rkao && gamepad2.left_trigger != 0) {
+                robot.chop("GRAB");
+                robot.lSpat.setTargetPosition(robot.DOWN_SPAT_POS);
+                robot.rSpat.setTargetPosition(robot.DOWN_SPAT_POS);
+                robot.lSpat.setPower(0.3);
+                robot.rSpat.setPower(0.3);
+                robot.spatula = false;
+                robot.ov = false;
+            }
+        }
+
+        if(gamepad2.left_trigger!= 0) {
+            rkao = true;
+        } else {
+            rkao = false;
         }
     }
 
-    void strafeAdj() {
-        int top;
-
-        top = Math.max(Math.max(robot.backLeft.getCurrentPosition(), robot.backRight.getCurrentPosition()), Math.max(robot.frontLeft.getCurrentPosition(), robot.frontRight.getCurrentPosition()));
-
-        blStr = strafe + (top - robot.backLeft.getCurrentPosition()) / 1000;
-        brStr = strafe + (top - robot.backRight.getCurrentPosition()) / 1000;
-        flStr = strafe + (top - robot.frontLeft.getCurrentPosition()) / 1000;
-        frStr = strafe + (top - robot.frontRight.getCurrentPosition()) / 1000;
+    void relic() {
+        if(!robot.rel) {
+            if(!relServo && gamepad2.x){
+                robot.relic.setPosition(0.3);
+                robot.rel = true;
+            }
+        } else {
+            if(!relServo && gamepad2.x) {
+                robot.relic.setPosition(0.5);
+                robot.rel = false;
+            }
+        }
+        relServo = gamepad2.x;
     }
 }

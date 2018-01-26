@@ -169,13 +169,11 @@ public class AutoRedTop extends LinearOpMode {
             }
         }
         if (forward) {
-            robot.jarmEXT.setPosition(1);
-            sleep(200);
-            robot.armServo.setPosition(robot.UP_JARM_POS);
-            sleep(200);
-            robot.jarmEXT.setPosition(0);
-            RotateDistance(-0.4, -3*rev / 2);
-            sleep(100);
+            //robot.jarmEXT.setPosition(1);
+            //sleep(200);
+            //robot.armServo.setPosition(robot.UP_JARM_POS);
+            //sleep(200);
+            //robot.jarmEXT.setPosition(0);
             VerticalDriveDistance(-0.4, -2 * rev);
             sleep(100);
             if(cryptobox_column == "LEFT") {
@@ -194,10 +192,10 @@ public class AutoRedTop extends LinearOpMode {
             sleep(200);
             VerticalDriveDistance(-0.3, -rev / 4);
         } else if (!forward) {
-            robot.jarmEXT.setPosition(0);
-            sleep(500);
-            robot.armServo.setPosition(robot.UP_JARM_POS);
-            sleep(300);
+            //robot.jarmEXT.setPosition(0);
+            //sleep(500);
+            //robot.armServo.setPosition(robot.UP_JARM_POS);
+            //sleep(300);
             VerticalDriveDistance(0.4, 2*rev);
             sleep(300);
             RotateDistance(-0.4, -3*rev / 2);
