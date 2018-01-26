@@ -39,10 +39,9 @@ public class hMap {
     public DcMotor lSpat       ;
     public DcMotor rSpat       ;
 
-    //Spatula Lift
-
-    public DcMotor spatLeft;
-    public DcMotor spatRight;
+    //Relic
+    public DcMotor pitch       ;
+    public DcMotor winch       ;
 
     /* Servos */
 
@@ -61,8 +60,8 @@ public class hMap {
     public Servo armServo    ;
     public Servo jarmEXT     ;
 
-    //Server for jewel spanker
-    public Servo jewelHitter;
+    //Relic Servo
+    public Servo relic       ;
 
     /* Sensors */
     public ColorSensor color_sensor;
@@ -76,24 +75,24 @@ public class hMap {
     public static final double FINAL_INTAKE_POS  = 1;
 
     //Start and end positions for spatula
+    public static final int OVER_SPAT_POS = -900;
     public static final int UP_SPAT_POS = -760;
     public static final int DOWN_SPAT_POS = 0;
+    public static final int RKO_SPAT_POS = -1600;
 
     //Start and end positions for the jewel arm
-    public static final double UP_JARM_POS = 0.1;
+    public static final double UP_JARM_POS = 0;
     public static final double DOWN_JARM_POS = 1;
-
-    //Spank
-    public static final double SPANK_MIDDLE = 0.5;
-    public static final double SPANK_RIGHT = 1;
-    public static final double SPANK_LEFT = 0;
 
 
     //boolean for functions
     public boolean tChop;
     public boolean bChop;
     public boolean in   ;
-    public boolean spatula;
+    public boolean spatula = false;
+    public boolean ov   ;
+    public boolean rel = true ;
+    public boolean rko  ;
 
     HardwareMap hwMap;
 
@@ -137,6 +136,11 @@ public class hMap {
 
         lSpat.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         rSpat.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        //Relic
+        pitch           = hwMap.get(DcMotor.class, "pitch"  )           ;
+        winch           = hwMap.get(DcMotor.class, "winch"  )           ;
+        relic           = hwMap.get(Servo.class,   "relic"  )           ;
 
         /* Servos */
 
@@ -187,4 +191,13 @@ public class hMap {
             bChop = true;
         }
     }
+
+    public void winch(double power) {
+        winch.setPower(power);
+    }
+
+    public void pitch(double power) {
+        pitch.setPower(power);
+    }
+
 }
