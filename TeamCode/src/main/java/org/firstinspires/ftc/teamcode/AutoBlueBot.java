@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.Func;
@@ -115,7 +116,16 @@ public class AutoBlueBot extends LinearOpMode {
              * UNKNOWN will be returned by {@link RelicRecoveryVuMark#from(VuforiaTrackable)}.
              */
 
+        gyroToGo(90);
+        sleep(1000);
+        gyroToGo(180);
+        sleep(1000);
+        gyroToGo(270);
+        sleep(1000);
+        gyroToGo(0);
 
+
+/*
         robot.armServo.setPosition(robot.DOWN_JARM_POS);
 
         forward = isJewelRedFinal();
@@ -158,7 +168,7 @@ public class AutoBlueBot extends LinearOpMode {
         }
 
         //sleep(100);
-
+*/
         /*RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate);
         while (!found) {
             found = true;
@@ -209,19 +219,11 @@ public class AutoBlueBot extends LinearOpMode {
         robot.backRight.setPower(power);
     }
 
-    //power drives right, -power drives left
-    void HorizontalStrafing(double power) {
-        robot.frontLeft.setPower(power);
-        robot.frontRight.setPower(-power);
-        robot.backLeft.setPower(-power);
-        robot.backRight.setPower(power);
-    }
-
     void rotateRight(double power) {
-        robot.frontLeft.setPower(power);
-        robot.backLeft.setPower(power);
-        robot.frontRight.setPower(-power);
-        robot.backRight.setPower(-power);
+        robot.frontLeft.setPower(-power);
+        robot.backLeft.setPower(-power);
+        robot.frontRight.setPower(power);
+        robot.backRight.setPower(power);
     }
 
     void rotateLeft(double power) {
@@ -256,34 +258,9 @@ public class AutoBlueBot extends LinearOpMode {
         while (robot.frontLeft.isBusy() && robot.frontRight.isBusy() && robot.backLeft.isBusy() && robot.backRight.isBusy()) {
         }
 
-        //StopDriving();
+
     }
 
-    void HorizontalStrafingDistance(double power, int distance) throws InterruptedException {
-        //reset encoders
-        robot.frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        robot.frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        robot.frontLeft.setTargetPosition(distance);
-        robot.frontRight.setTargetPosition(-distance);
-        robot.backLeft.setTargetPosition(-distance);
-        robot.backRight.setTargetPosition(distance);
-
-        // HorizontalStrafing(power);
-
-        while (robot.frontLeft.isBusy() && robot.frontRight.isBusy() && robot.backLeft.isBusy() && robot.backRight.isBusy()) {
-            //wait until robot stops
-        }
-
-//        StopDriving();
-    }
 
     void RotateDistance(double power, int distance) throws InterruptedException {
         {
@@ -312,7 +289,113 @@ public class AutoBlueBot extends LinearOpMode {
             //          StopDriving();
         }
     }
+    //rotate using gyro Functions
 
+    public void waitUntilStable() throws InterruptedException {
+        telemetry.update();
+        double degree = heading;
+        double previousreading = 0;
+        boolean stable = false;
+        while (stable == false) {
+            sleep(10);
+            previousreading = heading;
+            if (Math.abs(degree - previousreading) < 0.1) {
+                stable = true;
+            }
+        }
+    }
+    static class RangeResult {
+        public double distance;
+        public int position;
+    }
+    RangeResult inRange(double angle, double offset) {
+        RangeResult range = new RangeResult();
+        telemetry.update();
+        double degree = heading;
+        range.distance = Math.abs(angle - degree);
+        double right = angle - offset;
+        double left = angle + offset;
+        if (right < 0) {
+            right = right + 360;
+            if (degree > right || degree < left) {
+                range.position = 0;
+            } else {
+                range.position = 1;
+            }
+        } else if (left >= 360) {
+            left = left - 360;
+            if (degree < left || degree > right) {
+                range.position = 0;
+            } else {
+                range.position = -1;
+            }
+        } else {
+            if (degree > left) {
+                range.position = 1;
+            } else if (degree < right) {
+                range.position = -1;
+            } else {
+
+                range.position = 0;
+            }
+        }
+        if (range.distance > 180) {
+            range.distance = range.distance - 180;
+            if (range.position == -1) {
+                range.position = 1;
+            } else {
+                range.position = -1;
+            }
+        }
+        return range;
+    }
+    //turn left when -1
+    //turn right when 1
+    public void gyroToGo(double angle) throws InterruptedException {
+        double angleoffset = 2;
+        RangeResult rangeresult = inRange(angle, angleoffset);
+        int position = rangeresult.position;
+        int previousposition = rangeresult.position;
+        double distance = rangeresult.distance;
+        double previouspower = 0.5;
+        double powerlevel = 0.5;
+        while (true) {
+            //update rangeresult
+            rangeresult = inRange(angle, angleoffset);
+            position = rangeresult.position;
+            distance = rangeresult.distance;
+
+            //adjust power level
+            if(distance>70){
+                powerlevel=0.6;
+            }
+            else{
+                powerlevel=0.35;
+            }
+
+            //turn or stop
+            if (position == 0) {
+                StopDriving();
+                waitUntilStable();
+                rangeresult = inRange(angle, angleoffset);
+                if (rangeresult.position == 0) {
+                    break;
+                }
+            } else if (position == 1) {
+                if (previouspower != powerlevel || previousposition != position) {
+                    rotateRight(powerlevel);
+                    previousposition = position;
+                    previouspower = powerlevel;
+                }
+            } else if (position == -1) {
+                if (previouspower != powerlevel || previousposition != position) {
+                    rotateLeft(powerlevel);
+                    previousposition = position;
+                    previouspower = powerlevel;
+                }
+            }
+        }
+    }
 //------------------------------------------------------------------------------------------------------------------------------
     //Winching functions
 
@@ -421,8 +504,9 @@ public class AutoBlueBot extends LinearOpMode {
 
                         //heading is a string, so the below code makes it a long so it can actually be used
                         heading = Double.parseDouble(formatAngle(robot.angles.angleUnit, robot.angles.firstAngle));
-                        temp = heading;
-                        heading = (temp+360)%360;
+                        if(heading<0){
+                            heading=heading+360;
+                        }
 
                         return formatAngle(robot.angles.angleUnit, heading);
 
@@ -443,66 +527,6 @@ public class AutoBlueBot extends LinearOpMode {
         return String.format(Locale.getDefault(), "%.1f", AngleUnit.DEGREES.normalize(degrees));
     }
 
-    void gyroRotateRight(double power) {
-
-        robot.frontLeft.setPower(power);
-        robot.backLeft.setPower(power);
-        robot.frontRight.setPower(-power);
-        robot.backRight.setPower(-power);
-
-        while (heading>-90) {
-            telemetry.update();
-        }
-
-        StopDriving();
-    }
-
-    void gyroRotateLeft(double power, double ngle) {
-        //turn left
-        rotateLeft(power+0.2);
-
-        while(heading<0.6*ngle){
-            telemetry.update();
-        }
-        //gradually slow turn
-        for(int x=20; x>0; x--) {
-            double addpower=power + (x/100);
-            rotateLeft(addpower);
-            telemetry.update();
-            sleep(50);
-        }
-
-        while (heading <ngle+5) {
-            telemetry.update();
-        }
-        StopDriving();
-        //turn right(major adjust)
-        rotateRight(power);
-
-        while(heading>ngle+2){
-            telemetry.update();
-        }
-        //adjusting to range of 2 degrees
-        //turn left, then adjust right
-
-        while(ngle-2>heading) {
-            //turn left
-            robot.frontLeft.setPower(-power);
-            rotateLeft(power);
-            while (heading < ngle+5) {
-                telemetry.update();
-            }
-            StopDriving();
-            //turn right
-            rotateRight(power);
-
-            while (heading > ngle+2) {
-                telemetry.update();
-            }
-        }
-
-        StopDriving();
-    }
 
     void setHeadingToZero() {
         robot.gyroInit();
