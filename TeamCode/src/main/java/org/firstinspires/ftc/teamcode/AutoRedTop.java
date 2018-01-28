@@ -38,6 +38,10 @@ public class AutoRedTop extends LinearOpMode {
     double temp;
     double pitch;
 
+    //gyro function from gyroToGo class
+    gyroToGo gyroToGo=new gyroToGo();
+
+
     ElapsedTime runtime = new ElapsedTime();
 
     VuforiaLocalizer vuforia;

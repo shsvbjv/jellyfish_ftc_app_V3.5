@@ -29,6 +29,8 @@ public class AutoRedBot extends LinearOpMode {
     double heading;
     double temp;
 
+    //gyro function from gyroToGo class
+    gyroToGo gyroToGo=new gyroToGo();
 
     VuforiaLocalizer vuforia;
 
