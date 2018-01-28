@@ -31,6 +31,8 @@ public class Auto extends LinearOpMode {
     double heading;
     Orientation angles;
 
+    //gyro function from gyroToGo class
+    gyroToGo gyroToGo=new gyroToGo();
 
     VuforiaLocalizer vuforia;
 
@@ -110,40 +112,17 @@ public class Auto extends LinearOpMode {
 
 //------------------------------------------------------------------------------------------------------------------------------
         //start Autonomous
-            /*
-             * See if any of the instances of {@link relicTemplate} are currently visible.
-             * {@link RelicRecoveryVuMark} is an enum which can have the following values:
-             * UNKNOWN, LEFT, CENTER, and RIGHT. When a VuMark is visible, something other than
-             * UNKNOWN will be returned by {@link RelicRecoveryVuMark#from(VuforiaTrackable)}.
-             */
+        gyroToGo.gyroToGo(90);
+        sleep(1000);
+        gyroToGo.gyroToGo(180);
+        sleep(1000);
+        gyroToGo.gyroToGo(270);
+        sleep(1000);
+        gyroToGo.gyroToGo(0);
+        sleep(1000);
+        gyroToGo.gyroToGo(180);
 
-        VerticalDriveDistance(0.8, 4*rev);
 
-        //sleep(100);
-
-        /*RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate);
-        while (!found) {
-            found = true;
-            telemetry.addData("VuMark", "%s visible", vuMark);
-            cryptobox_column = vuMark.toString();
-            OpenGLMatrix pose = ((VuforiaTrackableDefaultListener) relicTemplate.getListener()).getPose();
-            telemetry.addData("Pose", format(pose));
-            if (pose != null) {
-                VectorF trans = pose.getTranslation();
-                Orientation rot = Orientation.getOrientation(pose, AxesReference.EXTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES);
-                double tX = trans.get(0);
-                double tY = trans.get(1);
-                double tZ = trans.get(2);
-                double rX = rot.firstAngle;
-                double rY = rot.secondAngle;
-                double rZ = rot.thirdAngle;
-            } else {
-                telemetry.addData("VuMark", "not visible");
-            }
-            telemetry.update();
-        }*/
-
-        //}
     }
 
 
@@ -165,6 +144,13 @@ public class Auto extends LinearOpMode {
         robot.backRight.setPower(power);
     }
 
+    //power drives right, -power drives left
+    void HorizontalStrafing(double power) {
+        robot.frontLeft.setPower(power);
+        robot.frontRight.setPower(-power);
+        robot.backLeft.setPower(-power);
+        robot.backRight.setPower(power);
+    }
 
     public void rotateRight(double power) {
         robot.frontLeft.setPower(power);
@@ -208,6 +194,31 @@ public class Auto extends LinearOpMode {
         //StopDriving();
     }
 
+    void HorizontalStrafingDistance(double power, int distance) throws InterruptedException {
+        //reset encoders
+        robot.frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        robot.frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        robot.frontLeft.setTargetPosition(distance);
+        robot.frontRight.setTargetPosition(-distance);
+        robot.backLeft.setTargetPosition(-distance);
+        robot.backRight.setTargetPosition(distance);
+
+        // HorizontalStrafing(power);
+
+        while (robot.frontLeft.isBusy() && robot.frontRight.isBusy() && robot.backLeft.isBusy() && robot.backRight.isBusy()) {
+            //wait until robot stops
+        }
+
+//        StopDriving();
+    }
 
     void RotateDistanceRight(double power, int distance) throws InterruptedException {
         {
@@ -238,7 +249,7 @@ public class Auto extends LinearOpMode {
     }
 
     void RotateDistanceLeft(double power, int distance) throws InterruptedException {
-        RotateDistanceRight(-power,-distance);
+    RotateDistanceRight(-power,-distance);
     }
     //------------------------------------------------------------------------------------------------------------------------------
 //rotate using gyro Functions
@@ -292,6 +303,7 @@ public class Auto extends LinearOpMode {
             } else if (degree < right) {
                 range.position = -1;
             } else {
+
                 range.position = 0;
             }
         }
@@ -313,8 +325,8 @@ public class Auto extends LinearOpMode {
         int position = rangeresult.position;
         int previousposition = rangeresult.position;
         double distance = rangeresult.distance;
-        double previouspower = 0.4;
-        double powerlevel = 0.4;
+        double previouspower = 0.5;
+        double powerlevel = 0.5;
         while (true) {
             //update rangeresult
             rangeresult = inRange(angle, angleoffset);
@@ -326,8 +338,9 @@ public class Auto extends LinearOpMode {
                 powerlevel=0.6;
             }
             else{
-                powerlevel=0.4;
+                powerlevel=0.5;
             }
+
             //turn or stop
             if (position == 0) {
                 StopDriving();
@@ -462,7 +475,7 @@ public class Auto extends LinearOpMode {
                         //heading is a string, so the below code makes it a long so it can actually be used
                         heading = Double.parseDouble(formatAngle(robot.angles.angleUnit, robot.angles.firstAngle));
                         if(heading<0){
-                            heading=heading+180;
+                            heading=heading+360;
                         }
 
 

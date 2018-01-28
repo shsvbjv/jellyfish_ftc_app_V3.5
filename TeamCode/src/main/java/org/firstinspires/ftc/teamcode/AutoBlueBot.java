@@ -30,6 +30,9 @@ public class AutoBlueBot extends LinearOpMode {
     double heading;
     double temp;
 
+    //gyro function from gyroToGo class
+    gyroToGo gyroToGo=new gyroToGo();
+
 
     VuforiaLocalizer vuforia;
 
@@ -116,14 +119,15 @@ public class AutoBlueBot extends LinearOpMode {
              * UNKNOWN will be returned by {@link RelicRecoveryVuMark#from(VuforiaTrackable)}.
              */
 
-        gyroToGo(90);
+        gyroToGo.gyroToGo(90);
         sleep(1000);
-        gyroToGo(180);
+        gyroToGo.gyroToGo(180);
         sleep(1000);
-        gyroToGo(270);
+        gyroToGo.gyroToGo(270);
         sleep(1000);
-        gyroToGo(0);
-
+        gyroToGo.gyroToGo(0);
+        sleep(1000);
+        gyroToGo.gyroToGo(180);
 
 /*
         robot.armServo.setPosition(robot.DOWN_JARM_POS);
@@ -289,113 +293,7 @@ public class AutoBlueBot extends LinearOpMode {
             //          StopDriving();
         }
     }
-    //rotate using gyro Functions
 
-    public void waitUntilStable() throws InterruptedException {
-        telemetry.update();
-        double degree = heading;
-        double previousreading = 0;
-        boolean stable = false;
-        while (stable == false) {
-            sleep(10);
-            previousreading = heading;
-            if (Math.abs(degree - previousreading) < 0.1) {
-                stable = true;
-            }
-        }
-    }
-    static class RangeResult {
-        public double distance;
-        public int position;
-    }
-    RangeResult inRange(double angle, double offset) {
-        RangeResult range = new RangeResult();
-        telemetry.update();
-        double degree = heading;
-        range.distance = Math.abs(angle - degree);
-        double right = angle - offset;
-        double left = angle + offset;
-        if (right < 0) {
-            right = right + 360;
-            if (degree > right || degree < left) {
-                range.position = 0;
-            } else {
-                range.position = 1;
-            }
-        } else if (left >= 360) {
-            left = left - 360;
-            if (degree < left || degree > right) {
-                range.position = 0;
-            } else {
-                range.position = -1;
-            }
-        } else {
-            if (degree > left) {
-                range.position = 1;
-            } else if (degree < right) {
-                range.position = -1;
-            } else {
-
-                range.position = 0;
-            }
-        }
-        if (range.distance > 180) {
-            range.distance = range.distance - 180;
-            if (range.position == -1) {
-                range.position = 1;
-            } else {
-                range.position = -1;
-            }
-        }
-        return range;
-    }
-    //turn left when -1
-    //turn right when 1
-    public void gyroToGo(double angle) throws InterruptedException {
-        double angleoffset = 2;
-        RangeResult rangeresult = inRange(angle, angleoffset);
-        int position = rangeresult.position;
-        int previousposition = rangeresult.position;
-        double distance = rangeresult.distance;
-        double previouspower = 0.5;
-        double powerlevel = 0.5;
-        while (true) {
-            //update rangeresult
-            rangeresult = inRange(angle, angleoffset);
-            position = rangeresult.position;
-            distance = rangeresult.distance;
-
-            //adjust power level
-            if(distance>70){
-                powerlevel=0.6;
-            }
-            else{
-                powerlevel=0.35;
-            }
-
-            //turn or stop
-            if (position == 0) {
-                StopDriving();
-                waitUntilStable();
-                rangeresult = inRange(angle, angleoffset);
-                if (rangeresult.position == 0) {
-                    break;
-                }
-            } else if (position == 1) {
-                if (previouspower != powerlevel || previousposition != position) {
-                    rotateRight(powerlevel);
-                    previousposition = position;
-                    previouspower = powerlevel;
-                }
-            } else if (position == -1) {
-                if (previouspower != powerlevel || previousposition != position) {
-                    rotateLeft(powerlevel);
-                    previousposition = position;
-                    previouspower = powerlevel;
-                }
-            }
-        }
-    }
 //------------------------------------------------------------------------------------------------------------------------------
     //Winching functions
 
