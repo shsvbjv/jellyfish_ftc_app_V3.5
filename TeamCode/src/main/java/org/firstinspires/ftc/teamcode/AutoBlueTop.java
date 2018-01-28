@@ -33,6 +33,10 @@ public class AutoBlueTop extends LinearOpMode {
     //this object tests to see if pitch is 0
     PitchChecker tester = new PitchChecker();
 
+    //gyro function from gyroToGo class
+    gyroToGo gyroToGo=new gyroToGo();
+
+
     //heading for gyro
     double heading;
     double temp;

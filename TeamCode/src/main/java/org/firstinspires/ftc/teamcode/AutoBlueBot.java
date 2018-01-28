@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.Func;
@@ -28,6 +29,9 @@ public class AutoBlueBot extends LinearOpMode {
     //heading for gyro
     double heading;
     double temp;
+
+    //gyro function from gyroToGo class
+    gyroToGo gyroToGo=new gyroToGo();
 
 
     VuforiaLocalizer vuforia;
@@ -115,7 +119,17 @@ public class AutoBlueBot extends LinearOpMode {
              * UNKNOWN will be returned by {@link RelicRecoveryVuMark#from(VuforiaTrackable)}.
              */
 
+        gyroToGo.gyroToGo(90);
+        sleep(1000);
+        gyroToGo.gyroToGo(180);
+        sleep(1000);
+        gyroToGo.gyroToGo(270);
+        sleep(1000);
+        gyroToGo.gyroToGo(0);
+        sleep(1000);
+        gyroToGo.gyroToGo(180);
 
+/*
         robot.armServo.setPosition(robot.DOWN_JARM_POS);
 
         forward = isJewelRedFinal();
@@ -158,7 +172,7 @@ public class AutoBlueBot extends LinearOpMode {
         }
 
         //sleep(100);
-
+*/
         /*RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate);
         while (!found) {
             found = true;
@@ -209,19 +223,11 @@ public class AutoBlueBot extends LinearOpMode {
         robot.backRight.setPower(power);
     }
 
-    //power drives right, -power drives left
-    void HorizontalStrafing(double power) {
-        robot.frontLeft.setPower(power);
-        robot.frontRight.setPower(-power);
-        robot.backLeft.setPower(-power);
-        robot.backRight.setPower(power);
-    }
-
     void rotateRight(double power) {
-        robot.frontLeft.setPower(power);
-        robot.backLeft.setPower(power);
-        robot.frontRight.setPower(-power);
-        robot.backRight.setPower(-power);
+        robot.frontLeft.setPower(-power);
+        robot.backLeft.setPower(-power);
+        robot.frontRight.setPower(power);
+        robot.backRight.setPower(power);
     }
 
     void rotateLeft(double power) {
@@ -256,34 +262,9 @@ public class AutoBlueBot extends LinearOpMode {
         while (robot.frontLeft.isBusy() && robot.frontRight.isBusy() && robot.backLeft.isBusy() && robot.backRight.isBusy()) {
         }
 
-        //StopDriving();
+
     }
 
-    void HorizontalStrafingDistance(double power, int distance) throws InterruptedException {
-        //reset encoders
-        robot.frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        robot.frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        robot.frontLeft.setTargetPosition(distance);
-        robot.frontRight.setTargetPosition(-distance);
-        robot.backLeft.setTargetPosition(-distance);
-        robot.backRight.setTargetPosition(distance);
-
-        // HorizontalStrafing(power);
-
-        while (robot.frontLeft.isBusy() && robot.frontRight.isBusy() && robot.backLeft.isBusy() && robot.backRight.isBusy()) {
-            //wait until robot stops
-        }
-
-//        StopDriving();
-    }
 
     void RotateDistance(double power, int distance) throws InterruptedException {
         {
@@ -421,8 +402,9 @@ public class AutoBlueBot extends LinearOpMode {
 
                         //heading is a string, so the below code makes it a long so it can actually be used
                         heading = Double.parseDouble(formatAngle(robot.angles.angleUnit, robot.angles.firstAngle));
-                        temp = heading;
-                        heading = (temp+360)%360;
+                        if(heading<0){
+                            heading=heading+360;
+                        }
 
                         return formatAngle(robot.angles.angleUnit, heading);
 
@@ -443,66 +425,6 @@ public class AutoBlueBot extends LinearOpMode {
         return String.format(Locale.getDefault(), "%.1f", AngleUnit.DEGREES.normalize(degrees));
     }
 
-    void gyroRotateRight(double power) {
-
-        robot.frontLeft.setPower(power);
-        robot.backLeft.setPower(power);
-        robot.frontRight.setPower(-power);
-        robot.backRight.setPower(-power);
-
-        while (heading>-90) {
-            telemetry.update();
-        }
-
-        StopDriving();
-    }
-
-    void gyroRotateLeft(double power, double ngle) {
-        //turn left
-        rotateLeft(power+0.2);
-
-        while(heading<0.6*ngle){
-            telemetry.update();
-        }
-        //gradually slow turn
-        for(int x=20; x>0; x--) {
-            double addpower=power + (x/100);
-            rotateLeft(addpower);
-            telemetry.update();
-            sleep(50);
-        }
-
-        while (heading <ngle+5) {
-            telemetry.update();
-        }
-        StopDriving();
-        //turn right(major adjust)
-        rotateRight(power);
-
-        while(heading>ngle+2){
-            telemetry.update();
-        }
-        //adjusting to range of 2 degrees
-        //turn left, then adjust right
-
-        while(ngle-2>heading) {
-            //turn left
-            robot.frontLeft.setPower(-power);
-            rotateLeft(power);
-            while (heading < ngle+5) {
-                telemetry.update();
-            }
-            StopDriving();
-            //turn right
-            rotateRight(power);
-
-            while (heading > ngle+2) {
-                telemetry.update();
-            }
-        }
-
-        StopDriving();
-    }
 
     void setHeadingToZero() {
         robot.gyroInit();

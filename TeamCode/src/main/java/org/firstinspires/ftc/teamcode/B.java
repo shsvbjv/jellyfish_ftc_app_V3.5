@@ -3,22 +3,17 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.Func;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
-import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
-import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
 import java.util.Locale;
@@ -27,18 +22,15 @@ import java.util.Locale;
  * Created by Ferannow and Kyle on 9/23/17. 123
  */
 
-@Autonomous(name = "B")
-public class B extends LinearOpMode {
-
-    //this object tests to see if pitch is 0
-    PitchChecker tester = new PitchChecker();
+@Autonomous(name = "AutoRedBot")
+public class AutoRedBot extends LinearOpMode {
 
     //heading for gyro
     double heading;
     double temp;
-    double pitch;
 
-    ElapsedTime runtime = new ElapsedTime();
+    //gyro function from gyroToGo class
+    gyroToGo gyroToGo=new gyroToGo();
 
     VuforiaLocalizer vuforia;
 
@@ -64,8 +56,6 @@ public class B extends LinearOpMode {
         robot.init(hardwareMap);
 
         setHeadingToZero();
-
-        robot.armServo.setPosition(robot.UP_JARM_POS);
 
         robot.color_sensor.enableLed(true);
 
@@ -115,8 +105,6 @@ public class B extends LinearOpMode {
 
         waitForStart();
 
-        runtime.reset();
-
         relicTrackables.activate();
 
 
@@ -130,65 +118,77 @@ public class B extends LinearOpMode {
              */
 
 
-        robot.chop("GRAB");
+        robot.armServo.setPosition(robot.DOWN_JARM_POS);
 
-        forward = isJewelRedFinal();
-
-        if(forward) {
-            robot.jarmEXT.setPosition(0);
-            sleep(300);
-            robot.armServo.setPosition(robot.UP_JARM_POS);
-            sleep(300);
-        } else {
-            robot.jarmEXT.setPosition(1);
-            sleep(300);
-            robot.armServo.setPosition(robot.UP_JARM_POS);
-            sleep(300);
-            robot.jarmEXT.setPosition(0);
-            sleep(300);
+        if(isJewelRedFinal()) {
+            forward = false;
+        } else if(!isJewelRedFinal()) {
+            forward = true;
         }
 
+        grabTop();
+
+        sleep(400);
+
+        if (forward) {
+            robot.jarmEXT.setPosition(1);
+            sleep(200);
+            robot.armServo.setPosition(robot.UP_JARM_POS);
+            sleep(200);
+            robot.jarmEXT.setPosition(0);
+            sleep(300);
+            VerticalDriveDistance(0.3, 3*rev);
+            sleep(300);
+            VerticalDriveDistance(-0.3, -rev/4);
+            sleep(300);
+            RotateDistance(0.3, 3*rev/2 - 100);
+            sleep(300);
+            VerticalDriveDistance(0.3, 2*rev);
+            startTop();
+            VerticalDriveDistance(-0.3, -rev/2);
+        } else if (!forward) {
+            robot.jarmEXT.setPosition(0);
+            sleep(500);
+            robot.armServo.setPosition(robot.UP_JARM_POS);
+            sleep(300);
+            VerticalDriveDistance(0.4, 4*rev);
+            sleep(300);
+            VerticalDriveDistance(-0.3, -rev/4);
+            // I'm Gay
+            RotateDistance(0.3, 3*rev/2 - 100);
+            sleep(300);
+            VerticalDriveDistance(0.3, 2*rev);
+            startTop();
+            VerticalDriveDistance(-0.3, -rev/2);
+
+        }
+
+        //sleep(100);
+
+        /*RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate);
         while (!found) {
-            RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate);
-            if (vuMark != RelicRecoveryVuMark.UNKNOWN) {
-                cryptobox_column = vuMark.toString();
-                found = true;
-                telemetry.addData("VuMark", "%s visible", vuMark);
-
-                /* For fun, we also exhibit the navigational pose. In the Relic Recovery game,
-                 * it is perhaps unlikely that you will actually need to act on this pose information, but
-                 * we illustrate it nevertheless, for completeness. */
-                OpenGLMatrix pose = ((VuforiaTrackableDefaultListener) relicTemplate.getListener()).getPose();
-                telemetry.addData("Pose", format(pose));
-
-                /* We further illustrate how to decompose the pose into useful rotational and
-                 * translational components */
-                if (pose != null) {
-                    VectorF trans = pose.getTranslation();
-                    Orientation rot = Orientation.getOrientation(pose, AxesReference.EXTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES);
-
-                    // Extract the X, Y, and Z components of the offset of the target relative to the robot
-                    double tX = trans.get(0);
-                    double tY = trans.get(1);
-                    double tZ = trans.get(2);
-
-                    // Extract the rotational components of the target relative to the robot
-                    double rX = rot.firstAngle;
-                    double rY = rot.secondAngle;
-                    double rZ = rot.thirdAngle;
-                }
+            found = true;
+            telemetry.addData("VuMark", "%s visible", vuMark);
+            cryptobox_column = vuMark.toString();
+            OpenGLMatrix pose = ((VuforiaTrackableDefaultListener) relicTemplate.getListener()).getPose();
+            telemetry.addData("Pose", format(pose));
+            if (pose != null) {
+                VectorF trans = pose.getTranslation();
+                Orientation rot = Orientation.getOrientation(pose, AxesReference.EXTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES);
+                double tX = trans.get(0);
+                double tY = trans.get(1);
+                double tZ = trans.get(2);
+                double rX = rot.firstAngle;
+                double rY = rot.secondAngle;
+                double rZ = rot.thirdAngle;
             } else {
                 telemetry.addData("VuMark", "not visible");
             }
             telemetry.update();
-            if(runtime.seconds() > 1) {
-                break;
-            }
-        }
+        }*/
 
+        //}
     }
-
-
 
 
     String format (OpenGLMatrix transformationMatrix){
@@ -215,6 +215,14 @@ public class B extends LinearOpMode {
         robot.backRight.setPower(power);
     }
 
+    //power drives right, -power drives left
+    void HorizontalStrafing(double power) {
+        robot.frontLeft.setPower(power);
+        robot.frontRight.setPower(-power);
+        robot.backLeft.setPower(-power);
+        robot.backRight.setPower(power);
+    }
+
     void rotateRight(double power) {
         robot.frontLeft.setPower(power);
         robot.backLeft.setPower(power);
@@ -232,6 +240,7 @@ public class B extends LinearOpMode {
 
 
     void VerticalDriveDistance(double power, int distance) throws InterruptedException {
+        //reset encoders
         robot.frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         robot.frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         robot.backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -252,30 +261,95 @@ public class B extends LinearOpMode {
 
         while (robot.frontLeft.isBusy() && robot.frontRight.isBusy() && robot.backLeft.isBusy() && robot.backRight.isBusy()) {
         }
+
+        //StopDriving();
     }
 
-    void RotateDistance(double power, int distance) throws InterruptedException {
+    void HorizontalStrafingDistance(double power, int distance) throws InterruptedException {
         //reset encoders
         robot.frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         robot.frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         robot.backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         robot.backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        robot.frontLeft.setTargetPosition(distance);
-        robot.frontRight.setTargetPosition(-distance);
-        robot.backLeft.setTargetPosition(distance);
-        robot.backRight.setTargetPosition(-distance);
-
         robot.frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         robot.frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         robot.backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         robot.backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        rotateRight(power);
+        robot.frontLeft.setTargetPosition(distance);
+        robot.frontRight.setTargetPosition(-distance);
+        robot.backLeft.setTargetPosition(-distance);
+        robot.backRight.setTargetPosition(distance);
+
+        // HorizontalStrafing(power);
 
         while (robot.frontLeft.isBusy() && robot.frontRight.isBusy() && robot.backLeft.isBusy() && robot.backRight.isBusy()) {
+            //wait until robot stops
+        }
+
+//        StopDriving();
+    }
+
+    void RotateDistance(double power, int distance) throws InterruptedException {
+        {
+            //reset encoders
+            robot.frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            robot.frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            robot.backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            robot.backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+            robot.frontLeft.setTargetPosition(distance);
+            robot.frontRight.setTargetPosition(-distance);
+            robot.backLeft.setTargetPosition(distance);
+            robot.backRight.setTargetPosition(-distance);
+
+            robot.frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            robot.frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            robot.backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            robot.backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            rotateRight(power);
+
+            while (robot.frontLeft.isBusy() && robot.frontRight.isBusy() && robot.backLeft.isBusy() && robot.backRight.isBusy()) {
+                //wait until robot stops
+            }
+
+            //          StopDriving();
         }
     }
+
+//------------------------------------------------------------------------------------------------------------------------------
+    //Winching functions
+
+    void grabBottom() throws InterruptedException {
+        robot.botServL.setPosition(robot.GRAB_CHOP_POS_A + 0.1);
+        robot.botServR.setPosition(robot.GRAB_CHOP_POS_B);
+        robot.bChop = true;
+        sleep(300);
+    }
+
+    void startBottom() throws InterruptedException {
+        robot.botServL.setPosition(robot.START_CHOP_POS_A);
+        robot.botServR.setPosition(robot.START_CHOP_POS_B + 0.1);
+        robot.bChop = false;
+        sleep(300);
+    }
+
+    void grabTop() throws InterruptedException {
+        robot.topServL.setPosition(robot.GRAB_CHOP_POS_B - 0.2);
+        robot.topServR.setPosition(robot.GRAB_CHOP_POS_A);
+        robot.tChop = true;
+        sleep(300);
+    }
+
+    void startTop() throws InterruptedException {
+        robot.topServL.setPosition(robot.START_CHOP_POS_B - 0.1);
+        robot.topServR.setPosition(robot.START_CHOP_POS_A - 0.1);
+        robot.tChop = false;
+        sleep(300);
+    }
+
 //------------------------------------------------------------------------------------------------------------------------------
     //isJewelRed
 
@@ -358,20 +432,6 @@ public class B extends LinearOpMode {
 
                         return formatAngle(robot.angles.angleUnit, heading);
 
-                    }
-
-
-                })
-                .addData("pitch", new Func<String>() {
-                    @Override public String value() {
-
-                        pitch = Double.parseDouble(formatAngle(robot.angles.angleUnit, robot.angles.thirdAngle));
-
-                        if(tester.checkFlat(pitch)){
-
-                        }
-
-                        return formatAngle(robot.angles.angleUnit, robot.angles.thirdAngle);
                     }
                 });
     }
