@@ -45,7 +45,6 @@ public class AutoRedTopEn extends LinearOpMode {
     //1 revolution=7 encoder values
     //1 rev = 12.56637036144in = 1.0471975512ft or 12.5663706144in
     int rev = 1120;
-    int run360=5476;
     int winchrev = 560;
     boolean forward;
     boolean found = false;
@@ -109,10 +108,6 @@ public class AutoRedTopEn extends LinearOpMode {
 
         relicTrackables.activate();
 
-        robot.jarmEXT.setPosition(0.5);
-
-        robot.armServo.setPosition(robot.DOWN_JARM_POS);
-
 
 //------------------------------------------------------------------------------------------------------------------------------
         //start Autonomous
@@ -144,24 +139,24 @@ public class AutoRedTopEn extends LinearOpMode {
                 break;
             }
         }
+        /*robot.jarmEXT.setPosition(0.5);
 
-        sleep(1500);
+        robot.armServo.setPosition(robot.DOWN_JARM_POS);
 
-        forward = isJewelRed();
+        forward = isJewelRedFinal();
 
         if(!forward) {
             robot.jarmEXT.setPosition(0);
-            sleep(300);
-            robot.jarmEXT.setPosition(0.5);
+            sleep(500);
             robot.armServo.setPosition(robot.UP_JARM_POS);
         } else {
             robot.jarmEXT.setPosition(1);
             sleep(500);
-            robot.jarmEXT.setPosition(0.5);
             robot.armServo.setPosition(robot.UP_JARM_POS);
+            robot.jarmEXT.setPosition(0);
         }
 
-        sleep(500);
+        sleep(500);*/
 
         robot.frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         robot.frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -183,25 +178,15 @@ public class AutoRedTopEn extends LinearOpMode {
 
         StopDriving();
         sleep(300);
-        if(!forward) {
-            robot.armServo.setPosition(robot.UP_JARM_POS);
-        }
         RotateDistance(-0.7, -10*rev/8);
         sleep(300);
-        VerticalDriveDistance(-0.7, -3*rev);
+        VerticalDriveDistance(-0.7, -5*rev/2);
         sleep(300);
-        if(cryptobox_column == "RIGHT") {
-            VerticalDriveDistance(0.6, 4 * rev / 3);
-        } else if(cryptobox_column == "CENTER") {
-            VerticalDriveDistance(0.6, 2*rev);
-        } else {
-            VerticalDriveDistance(0.7, 5*rev/2);
-        }
+        VerticalDriveDistance(0.6,4*rev/3);
         sleep(300);
         RotateDistance(0.7, 11*rev/9);
-        //gyroToGo(0);
         sleep(300);
-        VerticalDriveDistance(-0.5, -4*rev/3);
+        VerticalDriveDistance(-0.5, -rev);
         robot.intake.setPosition(robot.START_INTAKE_POS);
         robot.lSpat.setTargetPosition(robot.UP_SPAT_POS);
         robot.rSpat.setTargetPosition(robot.UP_SPAT_POS);
@@ -215,6 +200,7 @@ public class AutoRedTopEn extends LinearOpMode {
         }
         robot.chop("OPEN");
         VerticalDriveDistance(0.3, rev/3);
+        sleep(500);
         robot.intake.setPosition(robot.START_INTAKE_POS);
         VerticalDriveDistance(-0.5, -rev);
         VerticalDriveDistance(0.3, rev/3);
@@ -224,8 +210,6 @@ public class AutoRedTopEn extends LinearOpMode {
         robot.rSpat.setPower(0.3);
         sleep(500);
         robot.chop("GRAB");
-        VerticalDriveDistance(-0.5, -rev);
-        VerticalDriveDistance(0.3, rev/3);
     }
 
 
@@ -418,14 +402,13 @@ public class AutoRedTopEn extends LinearOpMode {
     //turn left when -1
     //turn right when 1
     public void gyroToGo(double angle) throws InterruptedException {
-        double angleoffset = 4;
+        double angleoffset = 2;
         RangeResult rangeresult = inRange(angle, angleoffset);
         int position = rangeresult.position;
         int previousposition = rangeresult.position;
         double distance = rangeresult.distance;
         double previouspower = 0.5;
         double powerlevel = 0.5;
-        double k=0.7;
         while (true) {
             //update rangeresult
             rangeresult = inRange(angle, angleoffset);
@@ -433,11 +416,14 @@ public class AutoRedTopEn extends LinearOpMode {
             distance = rangeresult.distance;
 
             //adjust power level
-            if (distance > 40) {
+            if (distance > 50) {
                 powerlevel = 0.7;
             }
+            else if(distance<20){
+                powerlevel = 0.375;
+            }
             else{
-                powerlevel = k-3;
+                powerlevel = 0.5;
             }
 
             //turn or stop
@@ -448,21 +434,17 @@ public class AutoRedTopEn extends LinearOpMode {
                 if (rangeresult.position == 0) {
                     break;
                 }
-                //position is left of heading, rotate right
             } else if (position == 1) {
                 if (previouspower != powerlevel || previousposition != position) {
-                    int deg= Math.round((float) (run360/360)*(float)(distance));
-                    RotateDistance(powerlevel, deg);
+                    rotateRight(powerlevel);
                     previousposition = position;
                     previouspower = powerlevel;
                 }
-                //position is right of heading, rotate left
             } else if (position == -1) {
                 if (previouspower != powerlevel || previousposition != position) {
-                    int deg= Math.round((float) (run360/360)*(float)(distance));
-                    RotateDistance(-powerlevel, -deg);                    previousposition = position;
+                    rotateLeft(powerlevel);
+                    previousposition = position;
                     previouspower = powerlevel;
-
                 }
             }
         }
