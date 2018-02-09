@@ -62,13 +62,6 @@ public class AutoBlueTop extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
 
-        // Set up our telemetry dashboard
-        composeTelemetry();
-
-        robot.init(hardwareMap);
-
-        setHeadingToZero();
-
         robot.armServo.setPosition(robot.UP_JARM_POS);
 
         robot.color_sensor.enableLed(true);
@@ -180,15 +173,14 @@ public class AutoBlueTop extends LinearOpMode {
             }
         }
 
-        VerticalDriveDistance(1, 2*rev);
+        VerticalDriveDistance(-1, -2*rev);
         sleep(300);
-        RotateDistance(1, rev);
         sleep(300);
         VerticalDriveDistance(-0.6, -2*rev);
         sleep(300);
         VerticalDriveDistance(1,2*rev);
         sleep(500);
-        RotateDistance(-1, -rev);
+        RotateDistance(1, 4*rev/3);
         sleep(500);
         VerticalDriveDistance(-1, -2*rev);
 
@@ -243,7 +235,7 @@ public class AutoBlueTop extends LinearOpMode {
     void VerticalDrive(double power) {
         robot.frontLeft.setPower(power);
         robot.frontRight.setPower(power);
-        robot.backLeft.setPower(power);
+        robot.backLeft.setPower(power * 0.1);
         robot.backRight.setPower(power);
     }
 
@@ -341,150 +333,4 @@ public class AutoBlueTop extends LinearOpMode {
         return isRed;
 
     }
-
-
-//------------------------------------------------------------------------------------------------------------------------------
-
-
-    void composeTelemetry() {
-        // At the beginning of each telemetry update, grab a bunch of data
-        // from the IMU that we will then display in separate lines.
-        telemetry.addAction(new Runnable() {
-            @Override
-            public void run() {
-                // Acquiring the angles is relatively expensive; we don't want
-                // to do that in each of the three items that need that info, as that's
-                // three times the necessary expense.
-                robot.angles = robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-                //robot.gravity = robot.imu.getGravity();
-            }
-        });
-
-        /*telemetry.addLine()
-                .addData("status", new Func<String>() {
-                    @Override
-                    public String value() {
-                        return robot.imu.getSystemStatus().toShortString();
-                    }
-                })
-                .addData("calib", new Func<String>() {
-                    @Override
-                    public String value() {
-                        return robot.imu.getCalibrationStatus().toString();
-                    }
-                });
-                */
-
-        telemetry.addLine()
-                //rotating left adds to the heading, while rotating right makes the heading go down.
-                //when heading reaches 180 it'll become negative and start going down.
-
-                .addData("heading", new Func<String>() {
-                    @Override
-                    public String value() {
-
-                        //heading is a string, so the below code makes it a long so it can actually be used
-                        heading = Double.parseDouble(formatAngle(robot.angles.angleUnit, robot.angles.firstAngle));
-                        temp = heading;
-                        heading = (temp+360)%360;
-
-                        return formatAngle(robot.angles.angleUnit, heading);
-
-                    }
-
-
-                })
-                .addData("pitch", new Func<String>() {
-                    @Override public String value() {
-
-                        pitch = Double.parseDouble(formatAngle(robot.angles.angleUnit, robot.angles.thirdAngle));
-
-                        if(tester.checkFlat(pitch)){
-
-                        }
-
-                        return formatAngle(robot.angles.angleUnit, robot.angles.thirdAngle);
-                    }
-                });
-    }
-
-    //----------------------------------------------------------------------------------------------
-    // Formatting
-    //----------------------------------------------------------------------------------------------
-
-    //The two functions below are for gyro
-    String formatAngle(AngleUnit angleUnit, double angle) {
-        return formatDegrees(AngleUnit.DEGREES.fromUnit(angleUnit, angle));
-    }
-
-    String formatDegrees(double degrees) {
-        return String.format(Locale.getDefault(), "%.1f", AngleUnit.DEGREES.normalize(degrees));
-    }
-
-    void gyroRotateRight(double power) {
-
-        robot.frontLeft.setPower(power);
-        robot.backLeft.setPower(power);
-        robot.frontRight.setPower(-power);
-        robot.backRight.setPower(-power);
-
-        while (heading>-90) {
-            telemetry.update();
-        }
-
-        StopDriving();
-    }
-
-    void gyroRotateLeft(double power, double ngle) {
-        //turn left
-        rotateLeft(power+0.2);
-
-        while(heading<0.6*ngle){
-            telemetry.update();
-        }
-        //gradually slow turn
-        for(int x=20; x>0; x--) {
-            double addpower=power + (x/100);
-            rotateLeft(addpower);
-            telemetry.update();
-            sleep(50);
-        }
-
-        while (heading <ngle+5) {
-            telemetry.update();
-        }
-        StopDriving();
-        //turn right(major adjust)
-        rotateRight(power);
-
-        while(heading>ngle+2){
-            telemetry.update();
-        }
-        //adjusting to range of 2 degrees
-        //turn left, then adjust right
-
-        while(ngle-2>heading) {
-            //turn left
-            robot.frontLeft.setPower(-power);
-            rotateLeft(power);
-            while (heading < ngle+5) {
-                telemetry.update();
-            }
-            StopDriving();
-            //turn right
-            rotateRight(power);
-
-            while (heading > ngle+2) {
-                telemetry.update();
-            }
-        }
-
-        StopDriving();
-    }
-
-    void setHeadingToZero() {
-        robot.gyroInit();
-        robot.imu.startAccelerationIntegration(new Position(), new Velocity(), 1000);
-    }
-
 }
