@@ -129,7 +129,7 @@ public class AutoRedTopEn extends LinearOpMode {
                     Orientation rot = Orientation.getOrientation(pose, AxesReference.EXTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES);
 
                     double tX = trans.get(0);
-                    double tY = trans.get(1);
+                    double tY = trans.get(1);//
                     double tZ = trans.get(2);
 
                     double rX = rot.firstAngle;
