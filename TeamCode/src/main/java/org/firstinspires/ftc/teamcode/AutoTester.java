@@ -86,35 +86,19 @@ public class AutoTester extends LinearOpMode {
         robot.backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         while(opModeIsActive()) {
-            servo();
-            spatula();
 
-            if (gamepad1.right_bumper) {
-                robot.frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                robot.frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                robot.backLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                robot.backRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                rotateRight(0.5);
-            } else if (gamepad1.left_bumper) {
-                robot.frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                robot.frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                robot.backLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                robot.backRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                rotateLeft(0.5);
-            } else if (-gamepad1.left_stick_y > 0) {
-                robot.frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                robot.frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                robot.backLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                robot.backRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                VerticalDrive(0.3);
-            } else if (-gamepad1.left_stick_y < 0) {
-                robot.frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                robot.frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                robot.backLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                robot.backRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                VerticalDrive(-0.3);
-            } else {
-                VerticalDrive(0);
+            if(gamepad1.y) {
+                VerticalDriveDistance(0.4, rev/8);
+                sleep(500);
+            } else if(gamepad1.x) {
+                RotateDistanceRight(1, 9*rev/8);
+                sleep(500);
+            } else if(gamepad1.b) {
+                RotateDistanceLeft(1, 9*rev/8);
+                sleep(500);
+            } else if (gamepad1.a) {
+                VerticalDriveDistance(-0.4, -rev/8);
+                sleep(500);
             }
 
 
@@ -172,23 +156,22 @@ public class AutoTester extends LinearOpMode {
         robot.backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         robot.backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        robot.frontLeft.setTargetPosition(distance);
-        robot.frontRight.setTargetPosition(distance);
-        robot.backLeft.setTargetPosition(distance);
-        robot.backRight.setTargetPosition(distance);
-
-        robot.frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
+        robot.frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         VerticalDrive(power);
 
-        while (robot.frontLeft.isBusy() && robot.frontRight.isBusy() && robot.backLeft.isBusy() && robot.backRight.isBusy()) {
+        if(distance > 0) {
+            while (robot.frontLeft.getCurrentPosition() < distance && robot.frontRight.getCurrentPosition() < distance && robot.backLeft.getCurrentPosition() < distance && robot.backRight.getCurrentPosition() < distance) {
+            }
+        } else {
+            while (robot.frontLeft.getCurrentPosition() > distance && robot.frontRight.getCurrentPosition() > distance && robot.backLeft.getCurrentPosition() > distance && robot.backRight.getCurrentPosition() > distance) {
+            }
         }
 
-        //StopDriving();
+        StopDriving();
     }
 
 
