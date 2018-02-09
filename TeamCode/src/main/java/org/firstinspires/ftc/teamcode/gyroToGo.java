@@ -25,7 +25,7 @@ public class gyroToGo extends LinearOpMode{
 
     @Override
     public void runOpMode() throws InterruptedException {
-
+        throw new UnsupportedOperationException();
     }
 
 

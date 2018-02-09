@@ -4,6 +4,7 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -39,8 +40,7 @@ public class hMap {
     public DcMotor lSpat       ;
     public DcMotor rSpat       ;
 
-    //Relic
-    public DcMotor pitch       ;
+    //Relic\
     public DcMotor winch       ;
 
     /* Servos */
@@ -62,9 +62,11 @@ public class hMap {
 
     //Relic Servo
     public Servo relic       ;
+    public Servo wrist       ;
 
     /* Sensors */
     public ColorSensor color_sensor;
+    public DistanceSensor distance_sensor;
 
     //Values for encoders and servos
     public static final double START_CHOP_POS_A  = 0.9;
@@ -81,8 +83,8 @@ public class hMap {
     public static final int RKO_SPAT_POS = -1600;
 
     //Start and end positions for the jewel arm
-    public static final double UP_JARM_POS = 0;
-    public static final double DOWN_JARM_POS = 1;
+    public static final double UP_JARM_POS = 0.1;
+    public static final double DOWN_JARM_POS = 0.75;
 
 
     //boolean for functions
@@ -138,9 +140,9 @@ public class hMap {
         rSpat.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         //Relic
-        pitch           = hwMap.get(DcMotor.class, "pitch"  )           ;
         winch           = hwMap.get(DcMotor.class, "winch"  )           ;
         relic           = hwMap.get(Servo.class,   "relic"  )           ;
+        wrist           = hwMap.get(Servo.class,   "wrist"  )           ;
 
         /* Servos */
 
@@ -160,7 +162,8 @@ public class hMap {
         vexR            = hwMap.get(CRServo.class,"vexR"    )          ;
 
         /* Sensors */
-        color_sensor    = hwMap.get(ColorSensor.class, "color_sensor");
+        color_sensor    = hwMap.get(ColorSensor.class, "sensor_color_distance");
+        distance_sensor = hwMap.get(DistanceSensor.class, "sensor_color_distance");
     }
 
     public void gyroInit() {
@@ -194,10 +197,6 @@ public class hMap {
 
     public void winch(double power) {
         winch.setPower(power);
-    }
-
-    public void pitch(double power) {
-        pitch.setPower(power);
     }
 
 }
