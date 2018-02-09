@@ -105,7 +105,7 @@ public class AutoRedTopEn extends LinearOpMode {
 
         waitForStart();
 
-        runtime.reset();//
+        runtime.reset();
 
         relicTrackables.activate();
 
