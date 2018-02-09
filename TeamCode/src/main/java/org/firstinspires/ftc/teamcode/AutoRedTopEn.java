@@ -242,7 +242,7 @@ public class AutoRedTopEn extends LinearOpMode {
         robot.frontRight.setPower(0);
         robot.backLeft.setPower(0);
         robot.backRight.setPower(0);
-    }
+    }//
 
     //distance=rate*duration duration=distance/rate
     //power drives forward, -power drives backward
