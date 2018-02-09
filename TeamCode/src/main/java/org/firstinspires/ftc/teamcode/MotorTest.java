@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 
 /**
  * Testing Motors
@@ -11,30 +12,27 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 @TeleOp (name = "Motor Test")
 public class MotorTest extends LinearOpMode {
-
-    private DcMotor frontLeft;
-    private DcMotor backLeft;
-    private DcMotor frontRight;
-    private DcMotor backRight;
+    hMap robot = new hMap();
 
     @Override
     public void runOpMode() throws InterruptedException {
 
-        frontLeft = hardwareMap.dcMotor.get("frontLeft");
-        frontRight = hardwareMap.dcMotor.get("frontRight");
-        backLeft = hardwareMap.dcMotor.get("backLeft");
-        backRight = hardwareMap.dcMotor.get("backRight");
+        robot.init(hardwareMap);
 
-        frontLeft.setDirection(DcMotor.Direction.REVERSE);
-        backLeft.setDirection(DcMotor.Direction.REVERSE);
+        robot.botServL.setPosition(robot.GRAB_CHOP_POS_A);
+        robot.botServR.setPosition(robot.GRAB_CHOP_POS_B);
+        robot.topServL.setPosition(robot.GRAB_CHOP_POS_B + 0.1);
+        robot.topServR.setPosition(robot.GRAB_CHOP_POS_A - 0.4);
 
         waitForStart();
 
         while(opModeIsActive()) {
-            frontLeft.setPower(-gamepad1.left_stick_y);
-            frontRight.setPower(-gamepad1.right_stick_y);
-            backLeft.setPower(-gamepad2.left_stick_y);
-            backRight.setPower(-gamepad2.right_stick_y);
+            robot.lSpat.setPower(gamepad1.left_stick_y/2);
+            robot.rSpat.setPower(gamepad1.left_stick_y/2);
+
+            telemetry.addData("lSpat", robot.lSpat.getCurrentPosition());
+            telemetry.addData("rSpat", robot.rSpat.getCurrentPosition());
+            telemetry.update();
         }
     }
 }

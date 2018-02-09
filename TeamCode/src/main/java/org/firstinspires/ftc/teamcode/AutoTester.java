@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
@@ -20,19 +20,19 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 import java.util.Locale;
 
+
+//For testing distance moved
 /**
  * Created by Feranno and Kyle on 9/23/17. 123
  */
 
-@Autonomous(name = "Auto")
-public class Auto extends LinearOpMode {
+@TeleOp(name = "AutoTester")
+public class AutoTester extends LinearOpMode {
 
     //heading for gyro
     double heading;
     Orientation angles;
 
-    //gyro function from gyroToGo class
-    gyroToGo gyroToGo=new gyroToGo();
 
     VuforiaLocalizer vuforia;
 
@@ -44,9 +44,13 @@ public class Auto extends LinearOpMode {
     //1 rev = 12.56637036144in = 1.0471975512ft or 12.5663706144in
     int rev = 1120;
     int winchrev = 560;
-    boolean forward;
     boolean found = false;
     String cryptobox_column;
+    boolean spat = true;
+    boolean over = false;
+    boolean botServo = false;
+    int drive = 0;
+    int turn;
 
 
     @Override
@@ -63,64 +67,48 @@ public class Auto extends LinearOpMode {
 
 
 //------------------------------------------------------------------------------------------------------------------------------
-         /*
-         * To start up Vuforia, tell it the view that we wish to use for camera monitor (on the RC phone);
-         * If no camera monitor is desired, use the parameterless constructor instead (commented out below).
-         */
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
 
-        // OR...  Do Not Activate the Camera Monitor View, to save power
-        // VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
-
-        /*
-         * IMPORTANT: You need to obtain your own license key to use Vuforia. The string below with which
-         * 'parameters.vuforiaLicenseKey' is initialized is for illustration only, and will not function.
-         * A Vuforia 'Development' license key, can be obtained free of charge from the Vuforia developer
-         * web site at https://developer.vuforia.com/license-manager.
-         *
-         * Vuforia license keys are always 380 characters long, and look as if they contain mostly
-         * random data. As an example, here is a example of a fragment of a valid key:
-         *      ... yIgIzTqZ4mWjk9wd3cZO9T1axEqzuhxoGlfOOI2dRzKS4T0hQ8kT ...
-         * Once you've obtained a license key, copy the string from the Vuforia web site
-         * and paste it in to your code onthe next line, between the double quotes.
-         */
-        parameters.vuforiaLicenseKey = "ATwJ9+j/////AAAAGWKRoGTF3EXjjiUONUpE/FEwHMBGsRsjSjnKHLRm/QkTZrfBTDWGmxaODJswltGeGHE/NewaAKjI9tFnnLg4uFGaQVAgYWNmHvi7RFMfMiQKKWXbwL6KjW7hFcPyZClckV+wfMPtW0EYe2if1IfwAx/C82Z2TqAbFLHWgz2QMf2h+LatQz5jgAJA+N46A+fNjDu4Ixf5VPiTL8Rffdho5FdLh0mWvrW7fnIjJvVfmHIaX+VSSRmWlK+rvmZN9fiD2Yi7jD99mArgXvQBq8fUBvUouzPNw5iRh1tiy8PiytQl0a39zXo9xpseGJ/HnpFDjklAvntMXQTIn2nl1bg9J9N3WZkEST4ymb+7CpgKYyp0";
-
-        /*
-         * We also indicate which camera on the RC that we wish to use.
-         * Here we chose the back (HiRes) camera (for greater range), but
-         * for a competition robot, the front camera might be more convenient.
-         */
-        parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
-        this.vuforia = ClassFactory.createVuforiaLocalizer(parameters);
-
-        /*
-         * Load the data set containing the VuMarks for Relic Recovery. There's only one trackable
-         * in this data set: all three of the VuMarks in the game were created from this one template,
-         * but differ in their instance id information.
-         * @see VuMarkInstanceId
-         */
-        VuforiaTrackables relicTrackables = this.vuforia.loadTrackablesFromAsset("RelicVuMark");
-        VuforiaTrackable relicTemplate = relicTrackables.get(0);
-        relicTemplate.setName("relicVuMarkTemplate"); // can help in debugging; otherwise not necessary
 
         waitForStart();
 
-        relicTrackables.activate();
+        robot.botServL.setPosition(robot.START_CHOP_POS_A);
+        robot.botServR.setPosition(robot.START_CHOP_POS_B);
+        robot.topServL.setPosition(robot.START_CHOP_POS_B + 0.1);
+        robot.topServR.setPosition(robot.START_CHOP_POS_A - 0.4);
+        robot.intake.setPosition(robot.START_INTAKE_POS);
+        robot.in = false;
+        robot.tChop = false;
+        robot.bChop = false;
 
+        robot.frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        while(opModeIsActive()) {
+
+            if(gamepad1.y) {
+                VerticalDriveDistance(0.4, rev/8);
+                sleep(500);
+            } else if(gamepad1.x) {
+                RotateDistanceRight(1, 9*rev/8);
+                sleep(500);
+            } else if(gamepad1.b) {
+                RotateDistanceLeft(1, 9*rev/8);
+                sleep(500);
+            } else if (gamepad1.a) {
+                VerticalDriveDistance(-0.4, -rev/8);
+                sleep(500);
+            }
+
+
+
+            telemetry.addData("Distance", robot.frontLeft.getCurrentPosition());
+            telemetry.update();
+        }
 
 //------------------------------------------------------------------------------------------------------------------------------
-        //start Autonomous
-        gyroToGo.gyroToGo(90);
-        sleep(1000);
-        gyroToGo.gyroToGo(180);
-        sleep(1000);
-        gyroToGo.gyroToGo(270);
-        sleep(1000);
-        gyroToGo.gyroToGo(0);
-        sleep(1000);
-        gyroToGo.gyroToGo(180);
+
 
 
     }
@@ -144,13 +132,6 @@ public class Auto extends LinearOpMode {
         robot.backRight.setPower(power);
     }
 
-    //power drives right, -power drives left
-    void HorizontalStrafing(double power) {
-        robot.frontLeft.setPower(power);
-        robot.frontRight.setPower(-power);
-        robot.backLeft.setPower(-power);
-        robot.backRight.setPower(power);
-    }
 
     public void rotateRight(double power) {
         robot.frontLeft.setPower(power);
@@ -175,50 +156,24 @@ public class Auto extends LinearOpMode {
         robot.backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         robot.backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        robot.frontLeft.setTargetPosition(distance);
-        robot.frontRight.setTargetPosition(distance);
-        robot.backLeft.setTargetPosition(distance);
-        robot.backRight.setTargetPosition(distance);
-
-        robot.frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
+        robot.frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         VerticalDrive(power);
 
-        while (robot.frontLeft.isBusy() && robot.frontRight.isBusy() && robot.backLeft.isBusy() && robot.backRight.isBusy()) {
+        if(distance > 0) {
+            while (robot.frontLeft.getCurrentPosition() < distance && robot.frontRight.getCurrentPosition() < distance && robot.backLeft.getCurrentPosition() < distance && robot.backRight.getCurrentPosition() < distance) {
+            }
+        } else {
+            while (robot.frontLeft.getCurrentPosition() > distance && robot.frontRight.getCurrentPosition() > distance && robot.backLeft.getCurrentPosition() > distance && robot.backRight.getCurrentPosition() > distance) {
+            }
         }
 
-        //StopDriving();
+        StopDriving();
     }
 
-    void HorizontalStrafingDistance(double power, int distance) throws InterruptedException {
-        //reset encoders
-        robot.frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        robot.frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        robot.frontLeft.setTargetPosition(distance);
-        robot.frontRight.setTargetPosition(-distance);
-        robot.backLeft.setTargetPosition(-distance);
-        robot.backRight.setTargetPosition(distance);
-
-        // HorizontalStrafing(power);
-
-        while (robot.frontLeft.isBusy() && robot.frontRight.isBusy() && robot.backLeft.isBusy() && robot.backRight.isBusy()) {
-            //wait until robot stops
-        }
-
-//        StopDriving();
-    }
 
     void RotateDistanceRight(double power, int distance) throws InterruptedException {
         {
@@ -249,7 +204,7 @@ public class Auto extends LinearOpMode {
     }
 
     void RotateDistanceLeft(double power, int distance) throws InterruptedException {
-    RotateDistanceRight(-power,-distance);
+        RotateDistanceRight(-power,-distance);
     }
     //------------------------------------------------------------------------------------------------------------------------------
 //rotate using gyro Functions
@@ -303,7 +258,6 @@ public class Auto extends LinearOpMode {
             } else if (degree < right) {
                 range.position = -1;
             } else {
-
                 range.position = 0;
             }
         }
@@ -312,7 +266,7 @@ public class Auto extends LinearOpMode {
             if (range.position == -1) {
                 range.position = 1;
             } else {
-                range.position = -1;
+                range.position = 1;
             }
         }
         return range;
@@ -325,8 +279,8 @@ public class Auto extends LinearOpMode {
         int position = rangeresult.position;
         int previousposition = rangeresult.position;
         double distance = rangeresult.distance;
-        double previouspower = 0.5;
-        double powerlevel = 0.5;
+        double previouspower = 0.3;
+        double powerlevel = 0.3;
         while (true) {
             //update rangeresult
             rangeresult = inRange(angle, angleoffset);
@@ -334,12 +288,6 @@ public class Auto extends LinearOpMode {
             distance = rangeresult.distance;
 
             //adjust power level
-            if(distance>70){
-                powerlevel=0.6;
-            }
-            else{
-                powerlevel=0.5;
-            }
 
             //turn or stop
             if (position == 0) {
@@ -475,7 +423,7 @@ public class Auto extends LinearOpMode {
                         //heading is a string, so the below code makes it a long so it can actually be used
                         heading = Double.parseDouble(formatAngle(robot.angles.angleUnit, robot.angles.firstAngle));
                         if(heading<0){
-                            heading=heading+360;
+                            heading=heading+180;
                         }
 
 
@@ -503,6 +451,111 @@ public class Auto extends LinearOpMode {
     void setHeadingToZero() {
         robot.gyroInit();
         robot.imu.startAccelerationIntegration(new Position(), new Velocity(), 1000);
+    }
+
+    void spatula() {
+        if(!robot.spatula) {
+            if(!spat && gamepad1.a) {
+                robot.lSpat.setTargetPosition(robot.DOWN_SPAT_POS);
+                robot.rSpat.setTargetPosition(robot.DOWN_SPAT_POS);
+                robot.lSpat.setPower(0.4);
+                robot.rSpat.setPower(0.4);
+                robot.spatula = true;
+                sleep(200);
+                robot.botServL.setPosition(robot.GRAB_CHOP_POS_A);
+                robot.botServR.setPosition(robot.GRAB_CHOP_POS_B);
+                robot.topServL.setPosition(robot.GRAB_CHOP_POS_B + 0.1);
+                robot.topServR.setPosition(robot.GRAB_CHOP_POS_A - 0.4);
+                robot.bChop = true;
+                if(robot.lSpat.getCurrentPosition() > -20 || robot.rSpat.getCurrentPosition() > -20) {
+                    robot.botServL.setPosition(robot.START_CHOP_POS_A);
+                    robot.botServR.setPosition(robot.START_CHOP_POS_B);
+                    robot.topServL.setPosition(robot.START_CHOP_POS_B + 0.1);
+                    robot.topServR.setPosition(robot.START_CHOP_POS_A - 0.4);
+                    robot.bChop = false;
+                }
+            }
+        } else {
+            if(!spat && gamepad1.a) {
+                robot.intake.setPosition(robot.START_INTAKE_POS);
+                robot.in = false;
+                robot.botServL.setPosition(robot.GRAB_CHOP_POS_A);
+                robot.botServR.setPosition(robot.GRAB_CHOP_POS_B);
+                robot.topServL.setPosition(robot.GRAB_CHOP_POS_B + 0.1);
+                robot.topServR.setPosition(robot.GRAB_CHOP_POS_A - 0.4);
+                robot.bChop = true;
+                robot.lSpat.setTargetPosition(robot.UP_SPAT_POS);
+                robot.rSpat.setTargetPosition(robot.UP_SPAT_POS);
+                robot.lSpat.setPower(-0.7);
+                robot.rSpat.setPower(-0.7);
+                robot.spatula = false;
+            }
+        }
+        spat = gamepad1.a;
+
+        if(!over && gamepad1.y) {
+            robot.intake.setPosition(robot.START_INTAKE_POS);
+            robot.in = false;
+            robot.botServL.setPosition(robot.GRAB_CHOP_POS_A);
+            robot.botServR.setPosition(robot.GRAB_CHOP_POS_B);
+            robot.topServL.setPosition(robot.GRAB_CHOP_POS_B + 0.1);
+            robot.topServR.setPosition(robot.GRAB_CHOP_POS_A - 0.4);
+            robot.bChop = true;
+            robot.lSpat.setTargetPosition(robot.OVER_SPAT_POS);
+            robot.rSpat.setTargetPosition(robot.OVER_SPAT_POS);
+            robot.lSpat.setPower(-0.7);
+            robot.rSpat.setPower(-0.7);
+            robot.spatula = false;
+        }
+        over = gamepad1.y;
+
+        if(gamepad1.dpad_up) {
+            robot.lSpat.setPower(-0.5);
+            robot.rSpat.setPower(-0.5);
+            robot.spatula = false;
+        } else if(gamepad1.dpad_down) {
+            robot.lSpat.setPower(0.5);
+            robot.rSpat.setPower(0.5);
+            robot.spatula = false;
+        }
+    }
+
+    void servo() {
+
+        if (!robot.bChop) {
+            if (!botServo && gamepad1.b) {
+                robot.botServL.setPosition(robot.GRAB_CHOP_POS_A);
+                robot.botServR.setPosition(robot.GRAB_CHOP_POS_B);
+                robot.topServL.setPosition(robot.GRAB_CHOP_POS_B + 0.1);
+                robot.topServR.setPosition(robot.GRAB_CHOP_POS_A - 0.4);
+                robot.bChop = true;
+            }
+        } else {
+            if (!botServo && gamepad1.b) {
+                robot.botServL.setPosition(robot.START_CHOP_POS_A);
+                robot.botServR.setPosition(robot.START_CHOP_POS_B);
+                robot.topServL.setPosition(robot.START_CHOP_POS_B + 0.1);
+                robot.topServR.setPosition(robot.START_CHOP_POS_A - 0.4);
+                robot.bChop = false;
+            }
+        }
+
+        /*if (!robot.tChop) {
+            if (!topServo && gamepad2.x) {
+                robot.topServL.setPosition(robot.GRAB_CHOP_POS_B - 0.2);
+                robot.topServR.setPosition(robot.GRAB_CHOP_POS_A);
+                robot.tChop = true;
+            }
+        } else {
+            if (!topServo && gamepad2.x) {
+                robot.topServL.setPosition(robot.START_CHOP_POS_B - 0.1);
+                robot.topServR.setPosition(robot.START_CHOP_POS_A - 0.1);
+                robot.tChop = false;
+            }
+        }*/
+
+        botServo = gamepad1.b;
+        //topServo = gamepad2.x;
     }
 
 }
