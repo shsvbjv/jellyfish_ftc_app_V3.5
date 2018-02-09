@@ -22,7 +22,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefau
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
 import java.util.Locale;
-
+//does anyone read these??
+//I am an idiot, AMA
 /**
  * Created by Ferannow and Kyle on 9/23/17. 123
  */
