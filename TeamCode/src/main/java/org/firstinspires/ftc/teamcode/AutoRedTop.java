@@ -3,18 +3,23 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.Func;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
+import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
 import java.util.Locale;
@@ -29,6 +34,9 @@ public class AutoRedTop extends LinearOpMode {
     //heading for gyro
     double heading;
     double temp;
+    double pitch = 0;
+
+    ElapsedTime runtime = new ElapsedTime();
 
     VuforiaLocalizer vuforia;
 
@@ -39,6 +47,7 @@ public class AutoRedTop extends LinearOpMode {
     //1 revolution=7 encoder values
     //1 rev = 12.56637036144in = 1.0471975512ft or 12.5663706144in
     int rev = 1120;
+    int run360=5476;
     int winchrev = 560;
     boolean forward;
     boolean found = false;
@@ -52,14 +61,10 @@ public class AutoRedTop extends LinearOpMode {
         setHeadingToZero();
         robot.color_sensor.enableLed(true);
 
-        //robot.armServo.setPosition(robot.UP_JARM_POS);
+        robot.armServo.setPosition(robot.UP_JARM_POS);
 
 
 //------------------------------------------------------------------------------------------------------------------------------
-         /*
-         * To start up Vuforia, tell it the view that we wish to use for camera monitor (on the RC phone);
-         * If no camera monitor is desired, use the parameterless constructor instead (commented out below).
-         */
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
 
@@ -85,10 +90,10 @@ public class AutoRedTop extends LinearOpMode {
          * Here we chose the back (HiRes) camera (for greater range), but
          * for a competition robot, the front camera might be more convenient.
          */
-        parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
+        parameters.cameraDirection = VuforiaLocalizer.CameraDirection.FRONT;
         this.vuforia = ClassFactory.createVuforiaLocalizer(parameters);
 
-        /*
+        /**
          * Load the data set containing the VuMarks for Relic Recovery. There's only one trackable
          * in this data set: all three of the VuMarks in the game were created from this one template,
          * but differ in their instance id information.
@@ -96,61 +101,140 @@ public class AutoRedTop extends LinearOpMode {
          */
         VuforiaTrackables relicTrackables = this.vuforia.loadTrackablesFromAsset("RelicVuMark");
         VuforiaTrackable relicTemplate = relicTrackables.get(0);
-        relicTemplate.setName("relicVuMarkTemplate"); // can help in debugging; otherwise not necessary
+        relicTemplate.setName("relicVuMarkTemplate");
+
+        robot.chop("GRAB");
 
         waitForStart();
 
+        runtime.reset();
+
         relicTrackables.activate();
+
+        robot.jarmEXT.setPosition(0.6);
+
+        robot.armServo.setPosition(robot.DOWN_JARM_POS);
 
 
 //------------------------------------------------------------------------------------------------------------------------------
         //start Autonomous
-            /*
-             * See if any of the instances of {@link relicTemplate} are currently visible.
-             * {@link RelicRecoveryVuMark} is an enum which can have the following values:
-             * UNKNOWN, LEFT, CENTER, and RIGHT. When a VuMark is visible, something other than
-             * UNKNOWN will be returned by {@link RelicRecoveryVuMark#from(VuforiaTrackable)}.
-             */
+        while (!found) {
+            RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate);
+            if (vuMark != RelicRecoveryVuMark.UNKNOWN) {
+                cryptobox_column = vuMark.toString();
+                found = true;
+                telemetry.addData("VuMark", "%s visible", vuMark);
+                OpenGLMatrix pose = ((VuforiaTrackableDefaultListener) relicTemplate.getListener()).getPose();
+                if (pose != null) {
+                    VectorF trans = pose.getTranslation();
+                    Orientation rot = Orientation.getOrientation(pose, AxesReference.EXTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES);
 
-        /*robot.jarmEXT.setPosition(0.5);
+                    double tX = trans.get(0);
+                    double tY = trans.get(1);
+                    double tZ = trans.get(2);
 
-        robot.armServo.setPosition(robot.DOWN_JARM_POS);
+                    double rX = rot.firstAngle;
+                    double rY = rot.secondAngle;
+                    double rZ = rot.thirdAngle;
+                }
+            } else {
+                telemetry.addData("VuMark", "not visible");
+            }
+            telemetry.update();
+            if(runtime.seconds() > 1) {
+                break;
+            }
+        }
 
-        forward = isJewelRedFinal();
+        sleep(1000);
+
+        forward = isJewelRed();
 
         if(!forward) {
             robot.jarmEXT.setPosition(0);
-            sleep(500);
+            sleep(300);
             robot.armServo.setPosition(robot.UP_JARM_POS);
         } else {
             robot.jarmEXT.setPosition(1);
             sleep(500);
             robot.armServo.setPosition(robot.UP_JARM_POS);
-            robot.jarmEXT.setPosition(0);
         }
 
-        sleep(500);*/
+        sleep(500);
 
-        robot.chop("GRAB");
-        VerticalDriveDistance(-0.4, -3*rev/2);
-        sleep(300);
-        gyroToGo(270);
-        sleep(300);
-        VerticalDriveDistance(-0.7, -5*rev/2);
-        sleep(300);
-        VerticalDriveDistance(5,3*rev/2);
-        sleep(300);
-        gyroToGo(0);
-        sleep(300);
-        VerticalDriveDistance(0.3, rev);
-        robot.chop("OPEN");
-        robot.intake.setPosition(robot.FINAL_INTAKE_POS);
-        robot.vexL.setPower(0.7);
-        robot.vexR.setPower(-0.7);
+        robot.backRight.setPower(-0.35);
+        robot.backLeft.setPower(-0.3);
+        robot.frontRight.setPower(-0.3);
+        robot.frontLeft.setPower(-0.3);
+
+        sleep(700);
+
+        while(pitch > 7) {
+            pitch = robot.angles.thirdAngle;
+        }
+
+        VerticalDrive(-0.2);
+
         sleep(1000);
-        robot.intake.setPosition(robot.START_INTAKE_POS);
-        VerticalDriveDistance(-0.3, -rev/3);
 
+        while(robot.ods_sensor_back.getVoltage() > 0.047) {
+            telemetry.addData("Distance", robot.ods_sensor_back.getVoltage());
+            telemetry.update();
+        }
+
+        sleep(300);
+
+        gyroToGo(90);
+
+        sleep(300);
+
+        VerticalDrive(-0.2);
+
+        //LEFT
+        if(cryptobox_column == "RIGHT") {
+            while (robot.ods_sensor_front.getVoltage() < 0.03) {
+                telemetry.addData("Distance", robot.ods_sensor_front.getVoltage());
+                telemetry.update();
+            }
+        } else if(cryptobox_column == "CENTER") {
+            while (robot.ods_sensor_front.getVoltage() < 0.057) {
+                telemetry.addData("Distance", robot.ods_sensor_front.getVoltage());
+                telemetry.update();
+            }
+        } else {
+            while (robot.ods_sensor_front.getVoltage() < 0.082) {
+                telemetry.addData("Distance", robot.ods_sensor_back.getVoltage());
+                telemetry.update();
+            }
+        }
+
+        sleep(1000);
+
+        //RotateDistance(0.7, 11*rev/9 + 70);
+        gyroToGo(359);
+
+        VerticalDriveDistance(-0.5, -rev/4);
+        robot.rSpat.setTargetPosition(robot.UP_SPAT_POS);
+        robot.rSpat.setPower(-0.7);
+        runtime.reset();
+        while(robot.rSpat.isBusy()) {
+            if(runtime.seconds() > 2) {
+                break;
+            }
+        }
+        robot.chop("OPEN");
+        VerticalDriveDistance(0.5, rev/4);
+        sleep(400);
+        VerticalDriveDistance(-0.3, -rev/3);
+        robot.rSpat.setTargetPosition(robot.DOWN_SPAT_POS);
+        robot.rSpat.setPower(0.3);
+        sleep(500);
+        robot.chop("GRAB");
+        VerticalDriveDistance(0.3, rev/2);
+        VerticalDriveDistance(-0.3, -rev/2);
+        VerticalDriveDistance(0.3, rev/3);
+        VerticalDriveDistance(-0.3, -rev/3);
+        VerticalDriveDistance(0.3, rev/3);
     }
 
 
@@ -195,26 +279,29 @@ public class AutoRedTop extends LinearOpMode {
 
 
     void VerticalDriveDistance(double power, int distance) throws InterruptedException {
-        //reset encoders
         robot.frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         robot.frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         robot.backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         robot.backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        robot.frontLeft.setTargetPosition(distance);
-        robot.frontRight.setTargetPosition(distance);
-        robot.backLeft.setTargetPosition(distance);
-        robot.backRight.setTargetPosition(distance);
-
-        robot.frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
+        robot.frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         VerticalDrive(power);
 
-        while (robot.frontLeft.isBusy() && robot.frontRight.isBusy() && robot.backLeft.isBusy() && robot.backRight.isBusy()) {
+        if(distance > 0) {
+            while (robot.frontLeft.getCurrentPosition() < distance &&
+                    robot.frontRight.getCurrentPosition() < distance &&
+                    robot.backLeft.getCurrentPosition() < distance &&
+                    robot.backRight.getCurrentPosition() < distance) {
+            }
+        } else {
+            while (robot.frontLeft.getCurrentPosition() > distance &&
+                    robot.frontRight.getCurrentPosition() > distance &&
+                    robot.backLeft.getCurrentPosition() > distance &&
+                    robot.backRight.getCurrentPosition() > distance) {
+            }
         }
 
         StopDriving();
@@ -282,17 +369,7 @@ public class AutoRedTop extends LinearOpMode {
 
 
     public void waitUntilStable() throws InterruptedException {
-        telemetry.update();
-        double degree = heading;
-        double previousreading = 0;
-        boolean stable = false;
-        while (stable == false) {
-            sleep(10);
-            previousreading = heading;
-            if (Math.abs(degree - previousreading) < 0.1) {
-                stable = true;
-            }
-        }
+        sleep(1000);
     }
     static class RangeResult {
         public double distance;
@@ -344,6 +421,7 @@ public class AutoRedTop extends LinearOpMode {
     //turn left when -1
     //turn right when 1
     public void gyroToGo(double angle) throws InterruptedException {
+        runtime.reset();
         double angleoffset = 2;
         RangeResult rangeresult = inRange(angle, angleoffset);
         int position = rangeresult.position;
@@ -358,17 +436,21 @@ public class AutoRedTop extends LinearOpMode {
             distance = rangeresult.distance;
 
             //adjust power level
-            if (distance > 50) {
-                powerlevel = 0.7;
+            if (distance > 30) {
+                powerlevel = 0.6;
             }
-            else if(distance<20){
-                powerlevel = 0.375;
+            else if(distance<10){
+                powerlevel = 0.340;
             }
             else{
-                powerlevel = 0.5;
+                powerlevel = 0.385;
             }
 
             //turn or stop
+            if(runtime.seconds() > 5) {
+                break;
+            }
+
             if (position == 0) {
                 StopDriving();
                 waitUntilStable();
@@ -438,6 +520,12 @@ public class AutoRedTop extends LinearOpMode {
                         return formatAngle(robot.angles.angleUnit, heading);
 
                     }
+                })
+                .addData("pitch", new Func<String>() {
+                    @Override
+                    public String value() {
+                        return formatAngle(robot.angles.angleUnit, robot.angles.thirdAngle);
+                    }
                 });
     }
 
@@ -465,8 +553,12 @@ public class AutoRedTop extends LinearOpMode {
 
     public boolean isJewelRed() {
         if (robot.color_sensor.red() > robot.color_sensor.blue()) {
+            telemetry.addData("IsRed", true);
+            telemetry.update();
             return true;
         } else {
+            telemetry.addData("IsRed", false);
+            telemetry.update();
             return false;
         }
     }
@@ -490,7 +582,8 @@ public class AutoRedTop extends LinearOpMode {
             isRed = true;
         }
 
+        telemetry.addData("IsRed", isRed);
+        telemetry.update();
         return isRed;
-
     }
 }

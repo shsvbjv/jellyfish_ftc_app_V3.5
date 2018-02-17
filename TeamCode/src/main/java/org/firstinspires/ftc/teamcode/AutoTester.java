@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -10,6 +11,7 @@ import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
@@ -26,7 +28,7 @@ import java.util.Locale;
  * Created by Feranno and Kyle on 9/23/17. 123
  */
 
-@TeleOp(name = "AutoTester")
+@Autonomous(name = "AutoTester")
 public class AutoTester extends LinearOpMode {
 
     //heading for gyro
@@ -65,52 +67,13 @@ public class AutoTester extends LinearOpMode {
 
         robot.color_sensor.enableLed(true);
 
-
-//------------------------------------------------------------------------------------------------------------------------------
-
-
         waitForStart();
 
-        robot.botServL.setPosition(robot.START_CHOP_POS_A);
-        robot.botServR.setPosition(robot.START_CHOP_POS_B);
-        robot.topServL.setPosition(robot.START_CHOP_POS_B + 0.1);
-        robot.topServR.setPosition(robot.START_CHOP_POS_A - 0.4);
-        robot.intake.setPosition(robot.START_INTAKE_POS);
-        robot.in = false;
-        robot.tChop = false;
-        robot.bChop = false;
+        gyroToGo(270);
 
-        robot.frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        sleep(500);
 
-        while(opModeIsActive()) {
-
-            if(gamepad1.y) {
-                VerticalDriveDistance(0.4, rev/8);
-                sleep(500);
-            } else if(gamepad1.x) {
-                RotateDistanceRight(1, 9*rev/8);
-                sleep(500);
-            } else if(gamepad1.b) {
-                RotateDistanceLeft(1, 9*rev/8);
-                sleep(500);
-            } else if (gamepad1.a) {
-                VerticalDriveDistance(-0.4, -rev/8);
-                sleep(500);
-            }
-
-
-
-            telemetry.addData("Distance", robot.frontLeft.getCurrentPosition());
-            telemetry.update();
-        }
-
-//------------------------------------------------------------------------------------------------------------------------------
-
-
-
+        gyroToGo(359);
     }
 
 
@@ -215,22 +178,13 @@ public class AutoTester extends LinearOpMode {
         robot.backRight.setPower(0);
     }
     public void waitUntilStable() throws InterruptedException {
-        telemetry.update();
-        double degree = heading;
-        double previousreading = 0;
-        boolean stable = false;
-        while (stable == false) {
-            sleep(10);
-            previousreading = heading;
-            if (Math.abs(degree - previousreading) < 0.1) {
-                stable = true;
-            }
-        }
+        sleep(1000);
     }
     static class RangeResult {
         public double distance;
         public int position;
     }
+
     RangeResult inRange(double angle, double offset) {
         RangeResult range = new RangeResult();
         telemetry.update();
@@ -258,6 +212,7 @@ public class AutoTester extends LinearOpMode {
             } else if (degree < right) {
                 range.position = -1;
             } else {
+
                 range.position = 0;
             }
         }
@@ -266,21 +221,22 @@ public class AutoTester extends LinearOpMode {
             if (range.position == -1) {
                 range.position = 1;
             } else {
-                range.position = 1;
+                range.position = -1;
             }
         }
         return range;
     }
+
     //turn left when -1
     //turn right when 1
     public void gyroToGo(double angle) throws InterruptedException {
-        double angleoffset = 3;
+        double angleoffset = 2;
         RangeResult rangeresult = inRange(angle, angleoffset);
         int position = rangeresult.position;
         int previousposition = rangeresult.position;
         double distance = rangeresult.distance;
-        double previouspower = 0.3;
-        double powerlevel = 0.3;
+        double previouspower = 0.5;
+        double powerlevel = 0.5;
         while (true) {
             //update rangeresult
             rangeresult = inRange(angle, angleoffset);
@@ -288,6 +244,15 @@ public class AutoTester extends LinearOpMode {
             distance = rangeresult.distance;
 
             //adjust power level
+            if (distance > 30) {
+                powerlevel = 0.6;
+            }
+            else if(distance<10){
+                powerlevel = 0.340;
+            }
+            else{
+                powerlevel = 0.385;
+            }
 
             //turn or stop
             if (position == 0) {
@@ -456,9 +421,7 @@ public class AutoTester extends LinearOpMode {
     void spatula() {
         if(!robot.spatula) {
             if(!spat && gamepad1.a) {
-                robot.lSpat.setTargetPosition(robot.DOWN_SPAT_POS);
                 robot.rSpat.setTargetPosition(robot.DOWN_SPAT_POS);
-                robot.lSpat.setPower(0.4);
                 robot.rSpat.setPower(0.4);
                 robot.spatula = true;
                 sleep(200);
@@ -467,7 +430,7 @@ public class AutoTester extends LinearOpMode {
                 robot.topServL.setPosition(robot.GRAB_CHOP_POS_B + 0.1);
                 robot.topServR.setPosition(robot.GRAB_CHOP_POS_A - 0.4);
                 robot.bChop = true;
-                if(robot.lSpat.getCurrentPosition() > -20 || robot.rSpat.getCurrentPosition() > -20) {
+                if(robot.rSpat.getCurrentPosition() > -20) {
                     robot.botServL.setPosition(robot.START_CHOP_POS_A);
                     robot.botServR.setPosition(robot.START_CHOP_POS_B);
                     robot.topServL.setPosition(robot.START_CHOP_POS_B + 0.1);
@@ -477,16 +440,12 @@ public class AutoTester extends LinearOpMode {
             }
         } else {
             if(!spat && gamepad1.a) {
-                robot.intake.setPosition(robot.START_INTAKE_POS);
-                robot.in = false;
                 robot.botServL.setPosition(robot.GRAB_CHOP_POS_A);
                 robot.botServR.setPosition(robot.GRAB_CHOP_POS_B);
                 robot.topServL.setPosition(robot.GRAB_CHOP_POS_B + 0.1);
                 robot.topServR.setPosition(robot.GRAB_CHOP_POS_A - 0.4);
                 robot.bChop = true;
-                robot.lSpat.setTargetPosition(robot.UP_SPAT_POS);
                 robot.rSpat.setTargetPosition(robot.UP_SPAT_POS);
-                robot.lSpat.setPower(-0.7);
                 robot.rSpat.setPower(-0.7);
                 robot.spatula = false;
             }
@@ -494,27 +453,21 @@ public class AutoTester extends LinearOpMode {
         spat = gamepad1.a;
 
         if(!over && gamepad1.y) {
-            robot.intake.setPosition(robot.START_INTAKE_POS);
-            robot.in = false;
             robot.botServL.setPosition(robot.GRAB_CHOP_POS_A);
             robot.botServR.setPosition(robot.GRAB_CHOP_POS_B);
             robot.topServL.setPosition(robot.GRAB_CHOP_POS_B + 0.1);
             robot.topServR.setPosition(robot.GRAB_CHOP_POS_A - 0.4);
             robot.bChop = true;
-            robot.lSpat.setTargetPosition(robot.OVER_SPAT_POS);
             robot.rSpat.setTargetPosition(robot.OVER_SPAT_POS);
-            robot.lSpat.setPower(-0.7);
             robot.rSpat.setPower(-0.7);
             robot.spatula = false;
         }
         over = gamepad1.y;
 
         if(gamepad1.dpad_up) {
-            robot.lSpat.setPower(-0.5);
             robot.rSpat.setPower(-0.5);
             robot.spatula = false;
         } else if(gamepad1.dpad_down) {
-            robot.lSpat.setPower(0.5);
             robot.rSpat.setPower(0.5);
             robot.spatula = false;
         }

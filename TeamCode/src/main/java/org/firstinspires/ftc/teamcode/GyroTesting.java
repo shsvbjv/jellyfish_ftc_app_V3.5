@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.Func;
@@ -23,15 +22,12 @@ import java.util.Locale;
  * Created by Ferannow and Kyle on 9/23/17. 123
  */
 
-@Autonomous(name = "AutoRedBot")
-public class AutoRedBot extends LinearOpMode {
+@Autonomous(name = "GyroTesting")
+public class GyroTesting extends LinearOpMode {
 
     //heading for gyro
     double heading;
     double temp;
-
-    //gyro function from gyroToGo class
-    gyroToGo gyroToGo=new gyroToGo();
 
     VuforiaLocalizer vuforia;
 
@@ -50,10 +46,12 @@ public class AutoRedBot extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-
+        composeTelemetry();
         robot.init(hardwareMap);
-
+        setHeadingToZero();
         robot.color_sensor.enableLed(true);
+
+        robot.armServo.setPosition(robot.UP_JARM_POS);
 
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -103,96 +101,9 @@ public class AutoRedBot extends LinearOpMode {
 
         relicTrackables.activate();
 
-
-//------------------------------------------------------------------------------------------------------------------------------
-        //start Autonomous
-            /*
-             * See if any of the instances of {@link relicTemplate} are currently visible.
-             * {@link RelicRecoveryVuMark} is an enum which can have the following values:
-             * UNKNOWN, LEFT, CENTER, and RIGHT. When a VuMark is visible, something other than
-             * UNKNOWN will be returned by {@link RelicRecoveryVuMark#from(VuforiaTrackable)}.
-             */
-
-        VerticalDriveDistance(-1, -rev/2);
-        sleep(300);
         gyroToGo(270);
-        sleep(300);
-        VerticalDriveDistance(-0.6, -2*rev);
-        sleep(300);
-        VerticalDriveDistance(1,3*rev/2);
-        sleep(300);
-        gyroToGo(0);
-        sleep(300);
-        VerticalDriveDistance(-1, -rev);
+        sleep(5000);
 
-
-/*
-        robot.armServo.setPosition(robot.DOWN_JARM_POS);
-
-        forward = isJewelRedFinal();
-
-        grabTop();
-
-        sleep(400);
-
-        if (forward) {
-            robot.jarmEXT.setPosition(0);
-            sleep(500);
-            robot.armServo.setPosition(robot.UP_JARM_POS);
-            sleep(100);
-            VerticalDriveDistance(-0.3, -4*rev);
-            sleep(300);
-            VerticalDriveDistance(0.4, rev/4);
-            sleep(300);
-            RotateDistance(0.3, 3*rev/2 - 100);
-            sleep(300);
-            VerticalDriveDistance(0.3, 2*rev);
-            startTop();
-            VerticalDriveDistance(-0.3, -rev/2);
-        } else if (!forward) {
-            robot.jarmEXT.setPosition(1);
-            sleep(200);
-            robot.armServo.setPosition(robot.UP_JARM_POS);
-            sleep(200);
-            robot.jarmEXT.setPosition(0);
-            sleep(300);
-            VerticalDriveDistance(-0.3, -3*rev);
-            sleep(300);
-            VerticalDriveDistance(0.3, rev/4);
-            sleep(300);
-            RotateDistance(0.3, 3*rev/2 - 100);
-            sleep(300);
-            VerticalDriveDistance(0.3, 2*rev);
-            startTop();
-            VerticalDriveDistance(-0.3, -rev/2);
-
-        }
-
-        //sleep(100);
-*/
-        /*RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate);
-        while (!found) {
-            found = true;
-            telemetry.addData("VuMark", "%s visible", vuMark);
-            cryptobox_column = vuMark.toString();
-            OpenGLMatrix pose = ((VuforiaTrackableDefaultListener) relicTemplate.getListener()).getPose();
-            telemetry.addData("Pose", format(pose));
-            if (pose != null) {
-                VectorF trans = pose.getTranslation();
-                Orientation rot = Orientation.getOrientation(pose, AxesReference.EXTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES);
-                double tX = trans.get(0);
-                double tY = trans.get(1);
-                double tZ = trans.get(2);
-                double rX = rot.firstAngle;
-                double rY = rot.secondAngle;
-                double rZ = rot.thirdAngle;
-            } else {
-                telemetry.addData("VuMark", "not visible");
-            }
-            telemetry.update();
-        }*/
-
-        //}
     }
 
 
@@ -221,10 +132,10 @@ public class AutoRedBot extends LinearOpMode {
     }
 
     void rotateRight(double power) {
-        robot.frontLeft.setPower(power);
-        robot.backLeft.setPower(power);
-        robot.frontRight.setPower(-power);
-        robot.backRight.setPower(-power);
+        robot.frontLeft.setPower(-power);
+        robot.backLeft.setPower(-power);
+        robot.frontRight.setPower(power);
+        robot.backRight.setPower(power);
     }
 
     void rotateLeft(double power) {
@@ -259,7 +170,7 @@ public class AutoRedBot extends LinearOpMode {
         while (robot.frontLeft.isBusy() && robot.frontRight.isBusy() && robot.backLeft.isBusy() && robot.backRight.isBusy()) {
         }
 
-
+        StopDriving();
     }
 
 
@@ -287,28 +198,50 @@ public class AutoRedBot extends LinearOpMode {
                 //wait until robot stops
             }
 
-            //          StopDriving();
+            StopDriving();
         }
     }
-    //rotate using gyro Functions
+
+//------------------------------------------------------------------------------------------------------------------------------
+    //Winching functions
+
+    void grabBottom() throws InterruptedException {
+        robot.botServL.setPosition(robot.GRAB_CHOP_POS_A + 0.1);
+        robot.botServR.setPosition(robot.GRAB_CHOP_POS_B);
+        robot.bChop = true;
+        sleep(300);
+    }
+
+    void startBottom() throws InterruptedException {
+        robot.botServL.setPosition(robot.START_CHOP_POS_A);
+        robot.botServR.setPosition(robot.START_CHOP_POS_B + 0.1);
+        robot.bChop = false;
+        sleep(300);
+    }
+
+    void grabTop() throws InterruptedException {
+        robot.topServL.setPosition(robot.GRAB_CHOP_POS_B - 0.2);
+        robot.topServR.setPosition(robot.GRAB_CHOP_POS_A);
+        robot.tChop = true;
+        sleep(300);
+    }
+
+    void startTop() throws InterruptedException {
+        robot.topServL.setPosition(robot.START_CHOP_POS_B - 0.1);
+        robot.topServR.setPosition(robot.START_CHOP_POS_A - 0.1);
+        robot.tChop = false;
+        sleep(300);
+    }
+
 
     public void waitUntilStable() throws InterruptedException {
-        telemetry.update();
-        double degree = heading;
-        double previousreading = 0;
-        boolean stable = false;
-        while (stable == false) {
-            sleep(10);
-            previousreading = heading;
-            if (Math.abs(degree - previousreading) < 0.1) {
-                stable = true;
-            }
-        }
+        sleep(1000);
     }
     static class RangeResult {
         public double distance;
         public int position;
     }
+
     RangeResult inRange(double angle, double offset) {
         RangeResult range = new RangeResult();
         telemetry.update();
@@ -350,10 +283,11 @@ public class AutoRedBot extends LinearOpMode {
         }
         return range;
     }
+
     //turn left when -1
     //turn right when 1
     public void gyroToGo(double angle) throws InterruptedException {
-        double angleoffset = 3;
+        double angleoffset = 2;
         RangeResult rangeresult = inRange(angle, angleoffset);
         int position = rangeresult.position;
         int previousposition = rangeresult.position;
@@ -367,14 +301,14 @@ public class AutoRedBot extends LinearOpMode {
             distance = rangeresult.distance;
 
             //adjust power level
-            if(distance>70){
-                powerlevel=0.5;
+            if (distance > 30) {
+                powerlevel = 0.6;
             }
-            else if(distance<20){
-                powerlevel=0.35;
+            else if(distance<10){
+                powerlevel = 0.3;
             }
             else{
-                powerlevel=0.3;
+                powerlevel = 0.35;
             }
 
             //turn or stop
@@ -400,35 +334,73 @@ public class AutoRedBot extends LinearOpMode {
             }
         }
     }
-//------------------------------------------------------------------------------------------------------------------------------
-    //Winching functions
 
-    void grabBottom() throws InterruptedException {
-        robot.botServL.setPosition(robot.GRAB_CHOP_POS_A + 0.1);
-        robot.botServR.setPosition(robot.GRAB_CHOP_POS_B);
-        robot.bChop = true;
-        sleep(300);
+    void composeTelemetry() {
+        // At the beginning of each telemetry update, grab a bunch of data
+        // from the IMU that we will then display in separate lines.
+        telemetry.addAction(new Runnable() {
+            @Override
+            public void run() {
+                // Acquiring the angles is relatively expensive; we don't want
+                // to do that in each of the three items that need that info, as that's
+                // three times the necessary expense.
+                robot.angles = robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+                //robot.gravity = robot.imu.getGravity();
+            }
+        });
+
+        /*telemetry.addLine()
+                .addData("status", new Func<String>() {
+                    @Override
+                    public String value() {
+                        return robot.imu.getSystemStatus().toShortString();
+                    }
+                })
+                .addData("calib", new Func<String>() {
+                    @Override
+                    public String value() {
+                        return robot.imu.getCalibrationStatus().toString();
+                    }
+                });
+                */
+
+        telemetry.addLine()
+                //rotating left adds to the heading, while rotating right makes the heading go down.
+                //when heading reaches 180 it'll become negative and start going down.
+
+                .addData("heading", new Func<String>() {
+                    @Override
+                    public String value() {
+
+                        //heading is a string, so the below code makes it a long so it can actually be used
+                        heading = Double.parseDouble(formatAngle(robot.angles.angleUnit, robot.angles.firstAngle));
+                        if (heading < 0) {
+                            heading = heading + 360;
+                        }
+
+                        return formatAngle(robot.angles.angleUnit, heading);
+
+                    }
+                });
     }
 
-    void startBottom() throws InterruptedException {
-        robot.botServL.setPosition(robot.START_CHOP_POS_A);
-        robot.botServR.setPosition(robot.START_CHOP_POS_B + 0.1);
-        robot.bChop = false;
-        sleep(300);
+    //----------------------------------------------------------------------------------------------
+    // Formatting
+    //----------------------------------------------------------------------------------------------
+
+    //The two functions below are for gyro
+    String formatAngle(AngleUnit angleUnit, double angle) {
+        return formatDegrees(AngleUnit.DEGREES.fromUnit(angleUnit, angle));
     }
 
-    void grabTop() throws InterruptedException {
-        robot.topServL.setPosition(robot.GRAB_CHOP_POS_B - 0.2);
-        robot.topServR.setPosition(robot.GRAB_CHOP_POS_A);
-        robot.tChop = true;
-        sleep(300);
+    String formatDegrees(double degrees) {
+        return String.format(Locale.getDefault(), "%.1f", AngleUnit.DEGREES.normalize(degrees));
     }
 
-    void startTop() throws InterruptedException {
-        robot.topServL.setPosition(robot.START_CHOP_POS_B - 0.1);
-        robot.topServR.setPosition(robot.START_CHOP_POS_A - 0.1);
-        robot.tChop = false;
-        sleep(300);
+
+    void setHeadingToZero() {
+        robot.gyroInit();
+        robot.imu.startAccelerationIntegration(new Position(), new Velocity(), 1000);
     }
 
 //------------------------------------------------------------------------------------------------------------------------------

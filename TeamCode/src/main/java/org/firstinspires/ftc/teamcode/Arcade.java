@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 /**
@@ -14,7 +15,6 @@ public class Arcade extends LinearOpMode {
     boolean topServo = false;
     boolean botServo = false;
     boolean relServo = false;
-    boolean isIn     = false;
     boolean spat     = false;
     boolean over     = false;
     boolean rkao     = false;
@@ -23,6 +23,8 @@ public class Arcade extends LinearOpMode {
     double power = 0;
     double turn = 0;
     double FL, FR, BL, BR;
+
+    ElapsedTime timer = new ElapsedTime();
 
     hMap robot = new hMap();
 
@@ -36,11 +38,11 @@ public class Arcade extends LinearOpMode {
         robot.botServR.setPosition(robot.START_CHOP_POS_B);
         robot.topServL.setPosition(robot.START_CHOP_POS_B + 0.1);
         robot.topServR.setPosition(robot.START_CHOP_POS_A - 0.4);
-        robot.intake.setPosition(robot.START_INTAKE_POS);
-        robot.in = false;
         robot.tChop = false;
         robot.bChop = false;
         robot.relic.setPosition(1);
+
+        timer.reset();
 
         waitForStart();
 
@@ -51,6 +53,10 @@ public class Arcade extends LinearOpMode {
             spatula();
             relic();
 
+            if(timer.milliseconds() < 500) {
+
+            }
+
             if(gamepad1.x) {
                 robot.frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 robot.backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -60,6 +66,11 @@ public class Arcade extends LinearOpMode {
                 robot.backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                 robot.frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                 robot.backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            }
+
+            if(!robot.spatula && gamepad2.a) {
+                robot.inL.setPower(-0.5);
+                robot.inR.setPower(0.5);
             }
 
             power = scaleInput(Range.clip(-gamepad1.right_stick_y, -1, 1));
@@ -109,7 +120,6 @@ public class Arcade extends LinearOpMode {
             telemetry.addData("BR", robot.backRight.getCurrentPosition());
             telemetry.addData("Slow", gamepad1.left_bumper);
             telemetry.addData("Spatula", robot.spatula);
-            telemetry.addData("lSpat", robot.lSpat.getCurrentPosition());
             telemetry.addData("rSpat", robot.rSpat.getCurrentPosition());
             telemetry.update();
         }
@@ -149,54 +159,27 @@ public class Arcade extends LinearOpMode {
                 robot.chop("OPEN");
             }
         }
-
-        /*if (!robot.tChop) {
-            if (!topServo && gamepad2.x) {
-                robot.topServL.setPosition(robot.GRAB_CHOP_POS_B - 0.2);
-                robot.topServR.setPosition(robot.GRAB_CHOP_POS_A);
-                robot.tChop = true;
-            }
-        } else {
-            if (!topServo && gamepad2.x) {
-                robot.topServL.setPosition(robot.START_CHOP_POS_B - 0.1);
-                robot.topServR.setPosition(robot.START_CHOP_POS_A - 0.1);
-                robot.tChop = false;
-            }
-        }*/
-
         botServo = gamepad2.b;
-        //topServo = gamepad2.x;
     }
 
     void intake() {
-        lPow = Range.clip(-gamepad2.left_stick_y, -0.7, 0.7);
-        rPow = Range.clip(-gamepad2.right_stick_y, -0.7, 0.7);
+        lPow = scaleInput(-gamepad2.left_stick_y);
+        rPow = scaleInput(-gamepad2.right_stick_y);
 
-        robot.vexL.setPower(-lPow);
-        robot.vexR.setPower(rPow);
-
-        if(!robot.in) {
-            if(!isIn && gamepad2.right_bumper) {
-                robot.intake.setPosition(robot.FINAL_INTAKE_POS);
-                robot.in = true;
-            }
+        if(!gamepad2.right_bumper) {
+            robot.inL.setPower(lPow);
+            robot.inR.setPower(-rPow);
         } else {
-            if(!isIn && gamepad2.right_bumper) {
-                robot.intake.setPosition(robot.START_INTAKE_POS);
-                robot.in = false;
-            }
+            robot.inL.setPower(lPow/2);
+            robot.inR.setPower(-rPow/2);
         }
-
-        isIn = gamepad2.right_bumper;
     }
 
     void spatula() {
         if(!robot.spatula) {
             if(!spat && gamepad2.a) {
                 robot.chop("OPEN");
-                robot.lSpat.setTargetPosition(robot.DOWN_SPAT_POS);
                 robot.rSpat.setTargetPosition(robot.DOWN_SPAT_POS);
-                robot.lSpat.setPower(0.4);
                 robot.rSpat.setPower(0.4);
                 robot.spatula = true;
                 sleep(400);
@@ -206,37 +189,28 @@ public class Arcade extends LinearOpMode {
         } else {
             if(!spat && gamepad2.a) {
                 if(!robot.ov) {
-                    robot.intake.setPosition(robot.START_INTAKE_POS);
-                    robot.in = false;
                     robot.chop("GRAB");
                 }
-                robot.lSpat.setTargetPosition(robot.UP_SPAT_POS);
                 robot.rSpat.setTargetPosition(robot.UP_SPAT_POS);
-                robot.lSpat.setPower(-0.7);
                 robot.rSpat.setPower(-0.7);
                 robot.spatula = false;
                 robot.ov = false;
+                timer.reset();
             }
         }
         spat = gamepad2.a;
 
         if(!robot.ov) {
             if (!over && gamepad2.y) {
-                robot.intake.setPosition(robot.START_INTAKE_POS);
-                robot.in = false;
                 robot.chop("GRAB");
-                robot.lSpat.setTargetPosition(robot.OVER_SPAT_POS);
                 robot.rSpat.setTargetPosition(robot.OVER_SPAT_POS);
-                robot.lSpat.setPower(-0.7);
                 robot.rSpat.setPower(-0.7);
                 robot.spatula = true;
                 robot.ov = true;
             }
         } else {
             if(!over && gamepad2.y) {
-                robot.lSpat.setTargetPosition(robot.UP_SPAT_POS);
                 robot.rSpat.setTargetPosition(robot.UP_SPAT_POS);
-                robot.lSpat.setPower(0.3);
                 robot.rSpat.setPower(0.3);
                 robot.spatula = true;
                 robot.ov = false;
@@ -247,9 +221,7 @@ public class Arcade extends LinearOpMode {
         if(!robot.rko) {
             if(!rkao && gamepad2.left_bumper) {
                 robot.chop("GRAB");
-                robot.lSpat.setTargetPosition(robot.RKO_SPAT_POS);
                 robot.rSpat.setTargetPosition(robot.RKO_SPAT_POS);
-                robot.lSpat.setPower(-0.7);
                 robot.rSpat.setPower(-0.7);
                 robot.ov = false;
                 robot.spatula = true;
@@ -257,9 +229,7 @@ public class Arcade extends LinearOpMode {
         } else {
             if(!rkao && gamepad2.left_bumper) {
                 robot.chop("GRAB");
-                robot.lSpat.setTargetPosition(robot.DOWN_SPAT_POS);
                 robot.rSpat.setTargetPosition(robot.DOWN_SPAT_POS);
-                robot.lSpat.setPower(0.3);
                 robot.rSpat.setPower(0.3);
                 robot.spatula = false;
                 robot.ov = false;
@@ -288,9 +258,9 @@ public class Arcade extends LinearOpMode {
         relServo = gamepad2.x;
 
         if(gamepad2.dpad_up) {
-            robot.wrist.setPosition(0.7);
+            robot.wrist.setPosition(1);
         } else if(gamepad2.dpad_down) {
-            robot.wrist.setPosition(0.1);
+            robot.wrist.setPosition(0.11);
         }
     }
 }
