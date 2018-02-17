@@ -40,7 +40,7 @@ public class Arcade extends LinearOpMode {
         robot.topServR.setPosition(robot.START_CHOP_POS_A - 0.4);
         robot.tChop = false;
         robot.bChop = false;
-        robot.relic.setPosition(1);
+        robot.relic.setPosition(0.8);
 
         timer.reset();
 
@@ -82,20 +82,20 @@ public class Arcade extends LinearOpMode {
             BR = power - turn;
 
             if (gamepad1.right_bumper) {
-                FL /= 2;
-                BL /= 2;
-                FR /= 2;
-                BR /= 2;
+                FL /= 5;
+                BL /= 5;
+                FR /= 5;
+                BR /= 5;
             } else if(gamepad1.dpad_right) {
-                FL = -0.5;
-                BL = -0.5;
-                FR = 0.5;
-                BR = 0.5;
+                FL = -0.4;
+                BL = -0.4;
+                FR = 0.4;
+                BR = 0.4;
             } else if(gamepad1.dpad_left) {
-                FL = 0.5;
-                BL = 0.5;
-                FR = -0.5;
-                BR = -0.5;
+                FL = 0.4;
+                BL = 0.4;
+                FR = -0.4;
+                BR = -0.4;
             }
 
             robot.frontLeft.setPower(FL);
@@ -251,16 +251,16 @@ public class Arcade extends LinearOpMode {
             }
         } else {
             if(!relServo && gamepad2.x) {
-                robot.relic.setPosition(1);
+                robot.relic.setPosition(0.8);
                 robot.rel = false;
             }
         }
         relServo = gamepad2.x;
 
         if(gamepad2.dpad_up) {
-            robot.wrist.setPosition(1);
+            robot.wrist.setPosition(0.9);
         } else if(gamepad2.dpad_down) {
-            robot.wrist.setPosition(0.11);
+            robot.wrist.setPosition(0.2);
         }
     }
 }
