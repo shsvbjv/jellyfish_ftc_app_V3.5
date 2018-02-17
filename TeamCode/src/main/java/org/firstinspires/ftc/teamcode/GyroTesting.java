@@ -3,40 +3,31 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.Func;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
-import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
-import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
 import java.util.Locale;
-//does anyone read these??
-//I am an idiot, AMA
+
 /**
  * Created by Ferannow and Kyle on 9/23/17. 123
  */
 
-@Autonomous(name = "B")
-public class B extends LinearOpMode {
+@Autonomous(name = "AutoRedTop")
+public class GyroTesting extends LinearOpMode {
 
     //heading for gyro
     double heading;
     double temp;
-
-    ElapsedTime runtime = new ElapsedTime();
 
     VuforiaLocalizer vuforia;
 
@@ -47,7 +38,6 @@ public class B extends LinearOpMode {
     //1 revolution=7 encoder values
     //1 rev = 12.56637036144in = 1.0471975512ft or 12.5663706144in
     int rev = 1120;
-    int run360=5476;
     int winchrev = 560;
     boolean forward;
     boolean found = false;
@@ -61,12 +51,113 @@ public class B extends LinearOpMode {
         setHeadingToZero();
         robot.color_sensor.enableLed(true);
 
-        robot.armServo.setPosition(robot.UP_JARM_POS);
+        //robot.armServo.setPosition(robot.UP_JARM_POS);
+
+
+//------------------------------------------------------------------------------------------------------------------------------
+         /*
+         * To start up Vuforia, tell it the view that we wish to use for camera monitor (on the RC phone);
+         * If no camera monitor is desired, use the parameterless constructor instead (commented out below).
+         */
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
+
+        // OR...  Do Not Activate the Camera Monitor View, to save power
+        // VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
+
+        /*
+         * IMPORTANT: You need to obtain your own license key to use Vuforia. The string below with which
+         * 'parameters.vuforiaLicenseKey' is initialized is for illustration only, and will not function.
+         * A Vuforia 'Development' license key, can be obtained free of charge from the Vuforia developer
+         * web site at https://developer.vuforia.com/license-manager.
+         *
+         * Vuforia license keys are always 380 characters long, and look as if they contain mostly
+         * random data. As an example, here is a example of a fragment of a valid key:
+         *      ... yIgIzTqZ4mWjk9wd3cZO9T1axEqzuhxoGlfOOI2dRzKS4T0hQ8kT ...
+         * Once you've obtained a license key, copy the string from the Vuforia web site
+         * and paste it in to your code onthe next line, between the double quotes.
+         */
+        parameters.vuforiaLicenseKey = "ATwJ9+j/////AAAAGWKRoGTF3EXjjiUONUpE/FEwHMBGsRsjSjnKHLRm/QkTZrfBTDWGmxaODJswltGeGHE/NewaAKjI9tFnnLg4uFGaQVAgYWNmHvi7RFMfMiQKKWXbwL6KjW7hFcPyZClckV+wfMPtW0EYe2if1IfwAx/C82Z2TqAbFLHWgz2QMf2h+LatQz5jgAJA+N46A+fNjDu4Ixf5VPiTL8Rffdho5FdLh0mWvrW7fnIjJvVfmHIaX+VSSRmWlK+rvmZN9fiD2Yi7jD99mArgXvQBq8fUBvUouzPNw5iRh1tiy8PiytQl0a39zXo9xpseGJ/HnpFDjklAvntMXQTIn2nl1bg9J9N3WZkEST4ymb+7CpgKYyp0";
+
+        /*
+         * We also indicate which camera on the RC that we wish to use.
+         * Here we chose the back (HiRes) camera (for greater range), but
+         * for a competition robot, the front camera might be more convenient.
+         */
+        parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
+        this.vuforia = ClassFactory.createVuforiaLocalizer(parameters);
+
+        /*
+         * Load the data set containing the VuMarks for Relic Recovery. There's only one trackable
+         * in this data set: all three of the VuMarks in the game were created from this one template,
+         * but differ in their instance id information.
+         * @see VuMarkInstanceId
+         */
+        VuforiaTrackables relicTrackables = this.vuforia.loadTrackablesFromAsset("RelicVuMark");
+        VuforiaTrackable relicTemplate = relicTrackables.get(0);
+        relicTemplate.setName("relicVuMarkTemplate"); // can help in debugging; otherwise not necessary
 
         waitForStart();
 
-        RotateDistance(0.7, 11*rev/9);
+        relicTrackables.activate();
+
+
+//------------------------------------------------------------------------------------------------------------------------------
+        //start Autonomous
+            /*
+             * See if any of the instances of {@link relicTemplate} are currently visible.
+             * {@link RelicRecoveryVuMark} is an enum which can have the following values:
+             * UNKNOWN, LEFT, CENTER, and RIGHT. When a VuMark is visible, something other than
+             * UNKNOWN will be returned by {@link RelicRecoveryVuMark#from(VuforiaTrackable)}.
+             */
+
+        /*robot.jarmEXT.setPosition(0.5);
+
+        robot.armServo.setPosition(robot.DOWN_JARM_POS);
+
+        forward = isJewelRedFinal();
+
+        if(!forward) {
+            robot.jarmEXT.setPosition(0);
+            sleep(500);
+            robot.armServo.setPosition(robot.UP_JARM_POS);
+        } else {
+            robot.jarmEXT.setPosition(1);
+            sleep(500);
+            robot.armServo.setPosition(robot.UP_JARM_POS);
+            robot.jarmEXT.setPosition(0);
+        }
+
+        sleep(500);*/
+
+        robot.chop("GRAB");
+        VerticalDriveDistance(-0.4, -3*rev/2);
+        sleep(300);
+        gyroToGo(270);
+        sleep(300);
+        VerticalDriveDistance(-0.7, -5*rev/2);
+        sleep(300);
+        VerticalDriveDistance(5,3*rev/2);
+        sleep(300);
+        gyroToGo(0);
+        sleep(300);
+        VerticalDriveDistance(0.3, rev);
+        robot.chop("OPEN");
+        robot.intake.setPosition(robot.FINAL_INTAKE_POS);
+        //robot.inL.setPower(0.7);
+        //robot.inR.setPower(-0.7);
+        sleep(1000);
+        robot.intake.setPosition(robot.START_INTAKE_POS);
+        VerticalDriveDistance(-0.3, -rev/3);
+
     }
+
+
+    String format (OpenGLMatrix transformationMatrix){
+        return (transformationMatrix != null) ? transformationMatrix.formatAsTransform() : "null";
+    }
+
+
 
     //------------------------------------------------------------------------------------------------------------------------------
     //Driving Power Functions
@@ -109,19 +200,20 @@ public class B extends LinearOpMode {
         robot.backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         robot.backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        robot.frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.frontLeft.setTargetPosition(distance);
+        robot.frontRight.setTargetPosition(distance);
+        robot.backLeft.setTargetPosition(distance);
+        robot.backRight.setTargetPosition(distance);
+
+        robot.frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
 
         VerticalDrive(power);
 
-        if(distance > 0) {
-            while (robot.frontLeft.getCurrentPosition() < distance && robot.frontRight.getCurrentPosition() < distance && robot.backLeft.getCurrentPosition() < distance && robot.backRight.getCurrentPosition() < distance) {
-            }
-        } else {
-            while (robot.frontLeft.getCurrentPosition() > distance && robot.frontRight.getCurrentPosition() > distance && robot.backLeft.getCurrentPosition() > distance && robot.backRight.getCurrentPosition() > distance) {
-            }
+        while (robot.frontLeft.isBusy() && robot.frontRight.isBusy() && robot.backLeft.isBusy() && robot.backRight.isBusy()) {
         }
 
         StopDriving();
@@ -251,14 +343,13 @@ public class B extends LinearOpMode {
     //turn left when -1
     //turn right when 1
     public void gyroToGo(double angle) throws InterruptedException {
-        double angleoffset = 4;
+        double angleoffset = 2;
         RangeResult rangeresult = inRange(angle, angleoffset);
         int position = rangeresult.position;
         int previousposition = rangeresult.position;
         double distance = rangeresult.distance;
         double previouspower = 0.5;
         double powerlevel = 0.5;
-        double k=0.7;
         while (true) {
             //update rangeresult
             rangeresult = inRange(angle, angleoffset);
@@ -266,11 +357,14 @@ public class B extends LinearOpMode {
             distance = rangeresult.distance;
 
             //adjust power level
-            if (distance > 40) {
+            if (distance > 50) {
                 powerlevel = 0.7;
             }
+            else if(distance<20){
+                powerlevel = 0.375;
+            }
             else{
-                powerlevel = k-3;
+                powerlevel = 0.5;
             }
 
             //turn or stop
@@ -281,21 +375,17 @@ public class B extends LinearOpMode {
                 if (rangeresult.position == 0) {
                     break;
                 }
-                //position is left of heading, rotate right
             } else if (position == 1) {
                 if (previouspower != powerlevel || previousposition != position) {
-                    int deg= Math.round((float) (run360/360)*(float)(distance));
-                    RotateDistance(powerlevel, deg);
+                    rotateRight(powerlevel);
                     previousposition = position;
                     previouspower = powerlevel;
                 }
-                //position is right of heading, rotate left
             } else if (position == -1) {
                 if (previouspower != powerlevel || previousposition != position) {
-                    int deg= Math.round((float) (run360/360)*(float)(distance));
-                    RotateDistance(-powerlevel, -deg);                    previousposition = position;
+                    rotateLeft(powerlevel);
+                    previousposition = position;
                     previouspower = powerlevel;
-
                 }
             }
         }

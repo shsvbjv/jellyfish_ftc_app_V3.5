@@ -456,9 +456,7 @@ public class AutoTester extends LinearOpMode {
     void spatula() {
         if(!robot.spatula) {
             if(!spat && gamepad1.a) {
-                robot.lSpat.setTargetPosition(robot.DOWN_SPAT_POS);
                 robot.rSpat.setTargetPosition(robot.DOWN_SPAT_POS);
-                robot.lSpat.setPower(0.4);
                 robot.rSpat.setPower(0.4);
                 robot.spatula = true;
                 sleep(200);
@@ -467,7 +465,7 @@ public class AutoTester extends LinearOpMode {
                 robot.topServL.setPosition(robot.GRAB_CHOP_POS_B + 0.1);
                 robot.topServR.setPosition(robot.GRAB_CHOP_POS_A - 0.4);
                 robot.bChop = true;
-                if(robot.lSpat.getCurrentPosition() > -20 || robot.rSpat.getCurrentPosition() > -20) {
+                if(robot.rSpat.getCurrentPosition() > -20) {
                     robot.botServL.setPosition(robot.START_CHOP_POS_A);
                     robot.botServR.setPosition(robot.START_CHOP_POS_B);
                     robot.topServL.setPosition(robot.START_CHOP_POS_B + 0.1);
@@ -484,9 +482,7 @@ public class AutoTester extends LinearOpMode {
                 robot.topServL.setPosition(robot.GRAB_CHOP_POS_B + 0.1);
                 robot.topServR.setPosition(robot.GRAB_CHOP_POS_A - 0.4);
                 robot.bChop = true;
-                robot.lSpat.setTargetPosition(robot.UP_SPAT_POS);
                 robot.rSpat.setTargetPosition(robot.UP_SPAT_POS);
-                robot.lSpat.setPower(-0.7);
                 robot.rSpat.setPower(-0.7);
                 robot.spatula = false;
             }
@@ -501,20 +497,16 @@ public class AutoTester extends LinearOpMode {
             robot.topServL.setPosition(robot.GRAB_CHOP_POS_B + 0.1);
             robot.topServR.setPosition(robot.GRAB_CHOP_POS_A - 0.4);
             robot.bChop = true;
-            robot.lSpat.setTargetPosition(robot.OVER_SPAT_POS);
             robot.rSpat.setTargetPosition(robot.OVER_SPAT_POS);
-            robot.lSpat.setPower(-0.7);
             robot.rSpat.setPower(-0.7);
             robot.spatula = false;
         }
         over = gamepad1.y;
 
         if(gamepad1.dpad_up) {
-            robot.lSpat.setPower(-0.5);
             robot.rSpat.setPower(-0.5);
             robot.spatula = false;
         } else if(gamepad1.dpad_down) {
-            robot.lSpat.setPower(0.5);
             robot.rSpat.setPower(0.5);
             robot.spatula = false;
         }

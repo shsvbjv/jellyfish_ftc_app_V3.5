@@ -27,10 +27,8 @@ public class MotorTest extends LinearOpMode {
         waitForStart();
 
         while(opModeIsActive()) {
-            robot.lSpat.setPower(gamepad1.left_stick_y/2);
             robot.rSpat.setPower(gamepad1.left_stick_y/2);
 
-            telemetry.addData("lSpat", robot.lSpat.getCurrentPosition());
             telemetry.addData("rSpat", robot.rSpat.getCurrentPosition());
             telemetry.update();
         }

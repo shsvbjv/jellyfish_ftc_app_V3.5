@@ -145,8 +145,8 @@ public class AutoRedTop extends LinearOpMode {
         VerticalDriveDistance(0.3, rev);
         robot.chop("OPEN");
         robot.intake.setPosition(robot.FINAL_INTAKE_POS);
-        robot.vexL.setPower(0.7);
-        robot.vexR.setPower(-0.7);
+        //robot.inL.setPower(0.7);
+        //robot.inR.setPower(-0.7);
         sleep(1000);
         robot.intake.setPosition(robot.START_INTAKE_POS);
         VerticalDriveDistance(-0.3, -rev/3);

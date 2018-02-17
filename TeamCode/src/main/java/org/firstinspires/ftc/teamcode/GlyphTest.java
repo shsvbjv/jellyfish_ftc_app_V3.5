@@ -59,11 +59,11 @@ public class GlyphTest extends LinearOpMode {
 
     void intake(String power) {
         if(power == "ON") {
-            robot.vexL.setPower(0.7);
-            robot.vexR.setPower(-0.7);
+            //robot.inL.setPower(0.7);
+            //robot.inR.setPower(-0.7);
         } else if(power == "OFF") {
-            robot.vexL.setPower(0);
-            robot.vexR.setPower(0);
+            //robot.inL.setPower(0);
+            //robot.inR.setPower(0);
         }
     }
 

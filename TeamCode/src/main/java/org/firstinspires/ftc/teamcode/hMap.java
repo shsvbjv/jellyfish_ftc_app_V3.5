@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
+import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
@@ -37,7 +38,6 @@ public class hMap {
     public DcMotor backRight   ;
 
     //Spatula
-    public DcMotor lSpat       ;
     public DcMotor rSpat       ;
 
     //Relic\
@@ -51,10 +51,10 @@ public class hMap {
     public Servo botServL    ;
     public Servo botServR    ;
 
-    //Intake Servos
-    public CRServo vexL      ;
-    public CRServo vexR      ;
-    public Servo intake      ;
+    //Intake
+    public DcMotor inL      ;
+    public DcMotor inR      ;
+    public Servo intake     ;
 
     //Sensor Arm Servo, for jewel arm
     public Servo armServo    ;
@@ -67,6 +67,8 @@ public class hMap {
     /* Sensors */
     public ColorSensor color_sensor;
     public DistanceSensor distance_sensor;
+    public AnalogInput ods_sensor_front;
+    public AnalogInput ods_sensor_back;
 
     //Values for encoders and servos
     public static final double START_CHOP_POS_A  = 0.9;
@@ -85,6 +87,7 @@ public class hMap {
     //Start and end positions for the jewel arm
     public static final double UP_JARM_POS = 0.1;
     public static final double DOWN_JARM_POS = 0.75;
+    public static final double MID_JARM_POS = 0.57;
 
 
     //boolean for functions
@@ -128,15 +131,10 @@ public class hMap {
         backRight.setPower(0);
 
         //Spatula
-        lSpat           = hwMap.get(DcMotor.class, "lSpat"  )           ;
         rSpat           = hwMap.get(DcMotor.class, "rSpat"  )           ;
 
         rSpat.setDirection(DcMotor.Direction.REVERSE)                               ;
-
-        lSpat.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rSpat.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        lSpat.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         rSpat.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         //Relic
@@ -158,12 +156,14 @@ public class hMap {
 
         //Intake
         intake          = hwMap.get(Servo.class,  "intake"  )          ;
-        vexL            = hwMap.get(CRServo.class,"vexL"    )          ;
-        vexR            = hwMap.get(CRServo.class,"vexR"    )          ;
+        inL             = hwMap.get(DcMotor.class,"inL"     )          ;
+        inR             = hwMap.get(DcMotor.class,"inR"     )          ;
 
         /* Sensors */
-        color_sensor    = hwMap.get(ColorSensor.class, "sensor_color_distance");
-        distance_sensor = hwMap.get(DistanceSensor.class, "sensor_color_distance");
+        color_sensor    = hwMap.get(ColorSensor.class, "color_sensor"      );
+        distance_sensor = hwMap.get(DistanceSensor.class, "distance_sensor");
+        ods_sensor_front= hwMap.get(AnalogInput.class, "ods_sensor_front"  );
+        ods_sensor_back = hwMap.get(AnalogInput.class, "ods_sensor_back"   );
     }
 
     public void gyroInit() {

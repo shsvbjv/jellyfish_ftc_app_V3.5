@@ -100,7 +100,6 @@ public class Tank extends LinearOpMode {
             telemetry.addData("BR", robot.backRight.getCurrentPosition());
             telemetry.addData("Slow", gamepad1.left_bumper);
             telemetry.addData("Spatula", robot.spatula);
-            telemetry.addData("lSpat", robot.lSpat.getCurrentPosition());
             telemetry.addData("rSpat", robot.rSpat.getCurrentPosition());
             telemetry.update();
         }
@@ -171,8 +170,8 @@ public class Tank extends LinearOpMode {
         lPow = Range.clip(-gamepad2.left_stick_y, -0.7, 0.7);
         rPow = Range.clip(-gamepad2.right_stick_y, -0.7, 0.7);
 
-        robot.vexL.setPower(-lPow);
-        robot.vexR.setPower(rPow);
+        //robot.inL.setPower(-lPow);
+        //robot.inR.setPower(rPow);
 
         if(!robot.in) {
             if(!isIn && gamepad2.right_bumper) {
@@ -192,9 +191,7 @@ public class Tank extends LinearOpMode {
     void spatula() {
         if(!robot.spatula) {
             if(!spat && gamepad2.a) {
-                robot.lSpat.setTargetPosition(robot.DOWN_SPAT_POS);
                 robot.rSpat.setTargetPosition(robot.DOWN_SPAT_POS);
-                robot.lSpat.setPower(0.4);
                 robot.rSpat.setPower(0.4);
                 robot.spatula = true;
                 sleep(200);
@@ -214,9 +211,7 @@ public class Tank extends LinearOpMode {
                 robot.topServL.setPosition(robot.GRAB_CHOP_POS_B + 0.1);
                 robot.topServR.setPosition(robot.GRAB_CHOP_POS_A - 0.4);
                 robot.bChop = true;
-                robot.lSpat.setTargetPosition(robot.UP_SPAT_POS);
                 robot.rSpat.setTargetPosition(robot.UP_SPAT_POS);
-                robot.lSpat.setPower(-0.7);
                 robot.rSpat.setPower(-0.7);
                 robot.spatula = false;
                 robot.ov = false;
@@ -233,18 +228,14 @@ public class Tank extends LinearOpMode {
                 robot.topServL.setPosition(robot.GRAB_CHOP_POS_B + 0.1);
                 robot.topServR.setPosition(robot.GRAB_CHOP_POS_A - 0.4);
                 robot.bChop = true;
-                robot.lSpat.setTargetPosition(robot.OVER_SPAT_POS);
                 robot.rSpat.setTargetPosition(robot.OVER_SPAT_POS);
-                robot.lSpat.setPower(-0.7);
                 robot.rSpat.setPower(-0.7);
                 robot.spatula = true;
                 robot.ov = true;
             }
         } else {
             if(!over && gamepad2.y) {
-                robot.lSpat.setTargetPosition(robot.UP_SPAT_POS);
                 robot.rSpat.setTargetPosition(robot.UP_SPAT_POS);
-                robot.lSpat.setPower(0.3);
                 robot.rSpat.setPower(0.3);
                 robot.spatula = true;
                 robot.ov = false;
@@ -253,11 +244,9 @@ public class Tank extends LinearOpMode {
         over = gamepad2.y;
 
         if(gamepad2.dpad_up) {
-            robot.lSpat.setPower(-0.5);
             robot.rSpat.setPower(-0.5);
             robot.spatula = false;
         } else if(gamepad2.dpad_down) {
-            robot.lSpat.setPower(0.5);
             robot.rSpat.setPower(0.5);
             robot.spatula = false;
         }
