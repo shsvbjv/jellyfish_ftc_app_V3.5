@@ -87,15 +87,15 @@ public class Arcade extends LinearOpMode {
                 FR /= 5;
                 BR /= 5;
             } else if(gamepad1.dpad_right) {
-                FL = -0.3;
-                BL = -0.3;
-                FR = 0.3;
-                BR = 0.3;
+                FL = -0.4;
+                BL = -0.4;
+                FR = 0.4;
+                BR = 0.4;
             } else if(gamepad1.dpad_left) {
-                FL = 0.3;
-                BL = 0.3;
-                FR = -0.3;
-                BR = -0.3;
+                FL = 0.4;
+                BL = 0.4;
+                FR = -0.4;
+                BR = -0.4;
             }
 
             robot.frontLeft.setPower(FL);
