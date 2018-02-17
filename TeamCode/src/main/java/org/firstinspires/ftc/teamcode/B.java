@@ -61,11 +61,15 @@ public class B extends LinearOpMode {
         setHeadingToZero();
         robot.color_sensor.enableLed(true);
 
-        robot.armServo.setPosition(robot.UP_JARM_POS);
-
         waitForStart();
 
-        RotateDistance(0.7, 11*rev/9);
+        while(opModeIsActive()) {
+            telemetry.addData("Red", robot.color_sensor.red());
+            telemetry.addData("Blue", robot.color_sensor.blue());
+            telemetry.addData("isJewelRed", isJewelRed());
+            telemetry.addData("Distance", robot.distance_sensor.getDistance(DistanceUnit.CM));
+            telemetry.update();
+        }
     }
 
     //------------------------------------------------------------------------------------------------------------------------------

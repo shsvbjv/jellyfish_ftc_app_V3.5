@@ -125,6 +125,7 @@ public class AutoRedBot extends LinearOpMode {
             if (vuMark != RelicRecoveryVuMark.UNKNOWN) {
                 cryptobox_column = vuMark.toString();
                 found = true;
+                telemetry.addData("VuMark", "%s visible", vuMark);
                 OpenGLMatrix pose = ((VuforiaTrackableDefaultListener) relicTemplate.getListener()).getPose();
                 if (pose != null) {
                     VectorF trans = pose.getTranslation();
@@ -176,7 +177,7 @@ public class AutoRedBot extends LinearOpMode {
             pitch = robot.angles.thirdAngle;
         }
 
-        VerticalDrive(-0.25);
+        VerticalDrive(-0.2);
 
 
         while(Double.isNaN(robot.distance_sensor.getDistance(DistanceUnit.CM))) {
@@ -194,10 +195,13 @@ public class AutoRedBot extends LinearOpMode {
         sleep(300);
 
         //RIGHT IS WITHOUT MOVING FORWARD
+        if(cryptobox_column == "LEFT") {
+            VerticalDriveDistance(-0.3, -rev - 160);
+        } else if(cryptobox_column == "CENTER") {
+            VerticalDriveDistance(-0.3, -rev/2 - 40);
+        } else {
 
-        //DONE!!! CENTER VerticalDriveDistance(-0.3, -rev/2 - 80);
-
-        VerticalDriveDistance(-0.3, -rev - 160);
+        }
 
         sleep(400);
 
@@ -208,9 +212,9 @@ public class AutoRedBot extends LinearOpMode {
         sleep(1000);
 
         RotateDistance(-0.7, -11*rev/9 + 50);
+        //gyroToGo(268.5);
 
         VerticalDriveDistance(-0.5, -rev/2 -100);
-        robot.intake.setPosition(robot.START_INTAKE_POS);
         robot.rSpat.setTargetPosition(robot.UP_SPAT_POS);
         robot.rSpat.setPower(-0.7);
         runtime.reset();
@@ -221,7 +225,6 @@ public class AutoRedBot extends LinearOpMode {
         }
         robot.chop("OPEN");
         VerticalDriveDistance(0.3, rev/3);
-        robot.intake.setPosition(robot.START_INTAKE_POS);
         VerticalDriveDistance(-0.5, -rev);
         sleep(400);
         VerticalDriveDistance(0.3, rev/3);
@@ -229,6 +232,27 @@ public class AutoRedBot extends LinearOpMode {
         robot.rSpat.setPower(0.3);
         sleep(500);
         robot.chop("GRAB");
+        /*sleep(500);
+        robot.chop("OPEN");
+        robot.inL.setPower(-0.4);
+        robot.inR.setPower(0.4);
+        VerticalDriveDistance(0.6, 5*rev);
+        gyroToGo(268);
+        VerticalDriveDistance(-0.6, -5*rev);
+        robot.chop("GRAB");
+        robot.rSpat.setTargetPosition(robot.UP_SPAT_POS);
+        robot.rSpat.setPower(-0.7);
+        runtime.reset();
+        while(robot.rSpat.isBusy()) {
+            if(runtime.seconds() > 2) {
+                break;
+            }
+        }
+        robot.inL.setPower(0);
+        robot.inR.setPower(0);
+        robot.chop("OPEN");
+        VerticalDriveDistance(-0.3, -rev/3);
+        VerticalDriveDistance(0.2, rev/4);*/
     }
 
 
@@ -363,17 +387,7 @@ public class AutoRedBot extends LinearOpMode {
 
 
     public void waitUntilStable() throws InterruptedException {
-        telemetry.update();
-        double degree = heading;
-        double previousreading = 0;
-        boolean stable = false;
-        while (stable == false) {
-            sleep(10);
-            previousreading = heading;
-            if (Math.abs(degree - previousreading) < 0.1) {
-                stable = true;
-            }
-        }
+        sleep(1000);
     }
     static class RangeResult {
         public double distance;
@@ -425,14 +439,14 @@ public class AutoRedBot extends LinearOpMode {
     //turn left when -1
     //turn right when 1
     public void gyroToGo(double angle) throws InterruptedException {
-        double angleoffset = 4;
+        runtime.reset();
+        double angleoffset = 2;
         RangeResult rangeresult = inRange(angle, angleoffset);
         int position = rangeresult.position;
         int previousposition = rangeresult.position;
         double distance = rangeresult.distance;
         double previouspower = 0.5;
         double powerlevel = 0.5;
-        double k=0.7;
         while (true) {
             //update rangeresult
             rangeresult = inRange(angle, angleoffset);
@@ -440,14 +454,21 @@ public class AutoRedBot extends LinearOpMode {
             distance = rangeresult.distance;
 
             //adjust power level
-            if (distance > 40) {
-                powerlevel = 0.7;
+            if (distance > 30) {
+                powerlevel = 0.6;
+            }
+            else if(distance<10){
+                powerlevel = 0.340;
             }
             else{
-                powerlevel = k-3;
+                powerlevel = 0.385;
             }
 
             //turn or stop
+            if(runtime.seconds() > 5) {
+                break;
+            }
+
             if (position == 0) {
                 StopDriving();
                 waitUntilStable();
@@ -455,21 +476,17 @@ public class AutoRedBot extends LinearOpMode {
                 if (rangeresult.position == 0) {
                     break;
                 }
-                //position is left of heading, rotate right
             } else if (position == 1) {
                 if (previouspower != powerlevel || previousposition != position) {
-                    int deg= Math.round((float) (run360/360)*(float)(distance));
-                    RotateDistance(powerlevel, deg);
+                    rotateRight(powerlevel);
                     previousposition = position;
                     previouspower = powerlevel;
                 }
-                //position is right of heading, rotate left
             } else if (position == -1) {
                 if (previouspower != powerlevel || previousposition != position) {
-                    int deg= Math.round((float) (run360/360)*(float)(distance));
-                    RotateDistance(-powerlevel, -deg);                    previousposition = position;
+                    rotateLeft(powerlevel);
+                    previousposition = position;
                     previouspower = powerlevel;
-
                 }
             }
         }

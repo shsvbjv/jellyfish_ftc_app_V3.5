@@ -20,9 +20,6 @@ public class GlyphTest extends LinearOpMode {
 
         robot.init(hardwareMap);
 
-        robot.intake.setPosition(robot.FINAL_INTAKE_POS);
-        robot.in = true;
-
         robot.chop("OPEN");
 
         waitForStart();

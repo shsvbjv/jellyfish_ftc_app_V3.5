@@ -54,7 +54,6 @@ public class hMap {
     //Intake
     public DcMotor inL      ;
     public DcMotor inR      ;
-    public Servo intake     ;
 
     //Sensor Arm Servo, for jewel arm
     public Servo armServo    ;
@@ -75,8 +74,6 @@ public class hMap {
     public static final double START_CHOP_POS_B  = 0.1;
     public static final double GRAB_CHOP_POS_A   = 1;
     public static final double GRAB_CHOP_POS_B   = 0;
-    public static final double START_INTAKE_POS  = 0;
-    public static final double FINAL_INTAKE_POS  = 1;
 
     //Start and end positions for spatula
     public static final int OVER_SPAT_POS = -900;
@@ -93,7 +90,6 @@ public class hMap {
     //boolean for functions
     public boolean tChop;
     public boolean bChop;
-    public boolean in   ;
     public boolean spatula = false;
     public boolean ov   ;
     public boolean rel = true ;
@@ -155,7 +151,6 @@ public class hMap {
         jarmEXT         = hwMap.get(Servo.class,  "jarmEXT" )          ;
 
         //Intake
-        intake          = hwMap.get(Servo.class,  "intake"  )          ;
         inL             = hwMap.get(DcMotor.class,"inL"     )          ;
         inR             = hwMap.get(DcMotor.class,"inR"     )          ;
 

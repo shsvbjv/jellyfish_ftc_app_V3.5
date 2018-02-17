@@ -110,7 +110,7 @@ public class AutoBlueBot extends LinearOpMode {
 
         relicTrackables.activate();
 
-        robot.jarmEXT.setPosition(0.5);
+        robot.jarmEXT.setPosition(0.63);
 
         robot.armServo.setPosition(robot.DOWN_JARM_POS);
 
@@ -122,6 +122,7 @@ public class AutoBlueBot extends LinearOpMode {
             if (vuMark != RelicRecoveryVuMark.UNKNOWN) {
                 cryptobox_column = vuMark.toString();
                 found = true;
+                telemetry.addData("VuMark", "%s visible", vuMark);
                 OpenGLMatrix pose = ((VuforiaTrackableDefaultListener) relicTemplate.getListener()).getPose();
                 if (pose != null) {
                     VectorF trans = pose.getTranslation();
@@ -139,7 +140,7 @@ public class AutoBlueBot extends LinearOpMode {
                 telemetry.addData("VuMark", "not visible");
             }
             telemetry.update();
-            if(runtime.seconds() > 1) {
+            if (runtime.seconds() > 1) {
                 break;
             }
         }
@@ -148,7 +149,7 @@ public class AutoBlueBot extends LinearOpMode {
 
         forward = isJewelRed();
 
-        if(forward) {
+        if (forward) {
             robot.jarmEXT.setPosition(0);
             sleep(300);
             robot.armServo.setPosition(robot.MID_JARM_POS);
@@ -163,7 +164,7 @@ public class AutoBlueBot extends LinearOpMode {
         VerticalDrive(0.2);
 
 
-        while(Double.isNaN(robot.distance_sensor.getDistance(DistanceUnit.CM))) {
+        while (Double.isNaN(robot.distance_sensor.getDistance(DistanceUnit.CM))) {
             telemetry.addData("Fencepost", robot.distance_sensor.getDistance(DistanceUnit.CM));
             telemetry.addData("DistanceFront", robot.ods_sensor_front.getVoltage());
             telemetry.addData("DistanceBack", robot.ods_sensor_back.getVoltage());
@@ -177,11 +178,13 @@ public class AutoBlueBot extends LinearOpMode {
 
         sleep(300);
 
-        //NEEDS TUNING!!! LEFT VerticalDriveDistance(0.3, rev/3 + 70);
-
-        //NEEDS TUNING!! CENTER VerticalDriveDistance(0.3, rev - 20);
-
-        VerticalDriveDistance(0.3, 4*rev/3 + 210);
+        if (cryptobox_column == "LEFT") {
+            VerticalDriveDistance(0.3, rev / 3 + 70);
+        } else if (cryptobox_column == "CENTER") {
+            VerticalDriveDistance(0.3, rev);
+        } else {
+            VerticalDriveDistance(0.3, 4 * rev / 3 + 300);
+        }
 
         sleep(400);
 
@@ -194,7 +197,6 @@ public class AutoBlueBot extends LinearOpMode {
         RotateDistance(-0.7, -11*rev/9);
 
         VerticalDriveDistance(-0.5, -rev/2);
-        robot.intake.setPosition(robot.START_INTAKE_POS);
         robot.rSpat.setTargetPosition(robot.UP_SPAT_POS);
         robot.rSpat.setPower(-0.7);
         runtime.reset();
@@ -204,7 +206,6 @@ public class AutoBlueBot extends LinearOpMode {
             }
         }
         robot.chop("OPEN");
-        robot.intake.setPosition(robot.START_INTAKE_POS);
         VerticalDriveDistance(-0.5, -rev);
         sleep(400);
         VerticalDriveDistance(0.3, rev/3);
@@ -212,11 +213,26 @@ public class AutoBlueBot extends LinearOpMode {
         robot.rSpat.setPower(0.3);
         sleep(500);
         robot.chop("GRAB");
-        sleep(500);
+        VerticalDriveDistance(-0.3, -rev/3);
+        VerticalDriveDistance(0.2, rev/4);
+        /*sleep(500);
         robot.chop("OPEN");
+        robot.inL.setPower(0.5);
+        robot.inR.setPower(-0.5);
         VerticalDriveDistance(0.6, 3*rev);
-
-
+        robot.chop("GRAB");
+        VerticalDriveDistance(-0.6, -3*rev);
+        robot.rSpat.setTargetPosition(robot.UP_SPAT_POS);
+        robot.rSpat.setPower(-0.7);
+        runtime.reset();
+        while(robot.rSpat.isBusy()) {
+            if(runtime.seconds() > 2) {
+                break;
+            }
+        }
+        robot.chop("OPEN");
+        VerticalDriveDistance(-0.3, -rev/3);
+        VerticalDriveDistance(0.2, rev/4);*/
     }
 
 
@@ -551,7 +567,7 @@ public class AutoBlueBot extends LinearOpMode {
         int blue = 0;
         boolean isRed = false;
 
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 5; i++) {
             if (isJewelRed()) {
                 red++;
             } else {

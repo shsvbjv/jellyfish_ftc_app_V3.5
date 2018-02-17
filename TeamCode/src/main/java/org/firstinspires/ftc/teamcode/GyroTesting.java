@@ -22,7 +22,7 @@ import java.util.Locale;
  * Created by Ferannow and Kyle on 9/23/17. 123
  */
 
-@Autonomous(name = "AutoRedTop")
+@Autonomous(name = "GyroTesting")
 public class GyroTesting extends LinearOpMode {
 
     //heading for gyro
@@ -51,7 +51,7 @@ public class GyroTesting extends LinearOpMode {
         setHeadingToZero();
         robot.color_sensor.enableLed(true);
 
-        //robot.armServo.setPosition(robot.UP_JARM_POS);
+        robot.armServo.setPosition(robot.UP_JARM_POS);
 
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -101,54 +101,8 @@ public class GyroTesting extends LinearOpMode {
 
         relicTrackables.activate();
 
-
-//------------------------------------------------------------------------------------------------------------------------------
-        //start Autonomous
-            /*
-             * See if any of the instances of {@link relicTemplate} are currently visible.
-             * {@link RelicRecoveryVuMark} is an enum which can have the following values:
-             * UNKNOWN, LEFT, CENTER, and RIGHT. When a VuMark is visible, something other than
-             * UNKNOWN will be returned by {@link RelicRecoveryVuMark#from(VuforiaTrackable)}.
-             */
-
-        /*robot.jarmEXT.setPosition(0.5);
-
-        robot.armServo.setPosition(robot.DOWN_JARM_POS);
-
-        forward = isJewelRedFinal();
-
-        if(!forward) {
-            robot.jarmEXT.setPosition(0);
-            sleep(500);
-            robot.armServo.setPosition(robot.UP_JARM_POS);
-        } else {
-            robot.jarmEXT.setPosition(1);
-            sleep(500);
-            robot.armServo.setPosition(robot.UP_JARM_POS);
-            robot.jarmEXT.setPosition(0);
-        }
-
-        sleep(500);*/
-
-        robot.chop("GRAB");
-        VerticalDriveDistance(-0.4, -3*rev/2);
-        sleep(300);
         gyroToGo(270);
-        sleep(300);
-        VerticalDriveDistance(-0.7, -5*rev/2);
-        sleep(300);
-        VerticalDriveDistance(5,3*rev/2);
-        sleep(300);
-        gyroToGo(0);
-        sleep(300);
-        VerticalDriveDistance(0.3, rev);
-        robot.chop("OPEN");
-        robot.intake.setPosition(robot.FINAL_INTAKE_POS);
-        //robot.inL.setPower(0.7);
-        //robot.inR.setPower(-0.7);
-        sleep(1000);
-        robot.intake.setPosition(robot.START_INTAKE_POS);
-        VerticalDriveDistance(-0.3, -rev/3);
+        sleep(5000);
 
     }
 
@@ -281,17 +235,7 @@ public class GyroTesting extends LinearOpMode {
 
 
     public void waitUntilStable() throws InterruptedException {
-        telemetry.update();
-        double degree = heading;
-        double previousreading = 0;
-        boolean stable = false;
-        while (stable == false) {
-            sleep(10);
-            previousreading = heading;
-            if (Math.abs(degree - previousreading) < 0.1) {
-                stable = true;
-            }
-        }
+        sleep(1000);
     }
     static class RangeResult {
         public double distance;
@@ -357,14 +301,14 @@ public class GyroTesting extends LinearOpMode {
             distance = rangeresult.distance;
 
             //adjust power level
-            if (distance > 50) {
-                powerlevel = 0.7;
+            if (distance > 30) {
+                powerlevel = 0.6;
             }
-            else if(distance<20){
-                powerlevel = 0.375;
+            else if(distance<10){
+                powerlevel = 0.3;
             }
             else{
-                powerlevel = 0.5;
+                powerlevel = 0.35;
             }
 
             //turn or stop

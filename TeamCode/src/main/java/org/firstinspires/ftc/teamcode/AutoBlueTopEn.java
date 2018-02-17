@@ -197,7 +197,6 @@ public class AutoBlueTopEn extends LinearOpMode {
         //gyroToGo(0);
         sleep(300);
         VerticalDriveDistance(-0.5, -4*rev/3);
-        robot.intake.setPosition(robot.START_INTAKE_POS);
         robot.rSpat.setTargetPosition(robot.UP_SPAT_POS);
         robot.rSpat.setPower(-0.7);
         runtime.reset();
@@ -208,7 +207,6 @@ public class AutoBlueTopEn extends LinearOpMode {
         }
         robot.chop("OPEN");
         VerticalDriveDistance(0.3, rev/3);
-        robot.intake.setPosition(robot.START_INTAKE_POS);
         VerticalDriveDistance(-0.5, -rev);
         VerticalDriveDistance(0.3, rev/3);
         robot.rSpat.setTargetPosition(robot.DOWN_SPAT_POS);
